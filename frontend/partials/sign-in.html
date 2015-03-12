@@ -1,8 +1,8 @@
 <form ng-hide="reg" class="form-signin">
   <h2 class="form-signin-heading">Войти в клуб</h2>
   
-  <input type="email" id="email" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
-  <input type="password" id="password" class="form-control consoleInput" placeholder="Пароль" required>
+  <input type="email" ng-model="email" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
+  <input type="password" ng-model="password" class="form-control consoleInput" placeholder="Пароль" required>
   
   <button class="btn btn-lg btn-block greenbtn" type="submit" ng-click="signIn(email, password)">Войти</button>
   <div>

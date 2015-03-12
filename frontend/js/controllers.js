@@ -33,8 +33,8 @@ cottonwayControllers.controller('SignInCtrl', function($scope, $cookies, $locati
             .then(signInCallback);
     };
     
-    $scope.signIn = function(username, password) {
-        $wamp.call('club.cottonway.auth.sign_in', [username, password], {}, {disclose_me: true})
+    $scope.signIn = function(email, password) {
+        $wamp.call('club.cottonway.auth.sign_in', [email, password], {}, {disclose_me: true})
             .then(signInCallback);
     };
 
