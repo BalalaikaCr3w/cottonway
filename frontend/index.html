@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Cotton Way club</title>
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="css/app.css">
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/controllers.js"></script>
+  </head>
+  <body ng-app="cottonway">
+    <div ng-controller="SignInCtrl" class="container">
+      <form ng-hide="reg" class="form-signin">
+        <h2 class="form-signin-heading">Войти в клуб</h2>
+   
+        <input type="email" id="inputEmail" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
+        <input type="password" id="inputPassword" class="form-control consoleInput" placeholder="Пароль" required>
+    
+        <button class="btn btn-lg btn-block greenbtn" type="submit">Войти</button>
+        <div>
+          <a href="#" ng-click="reg = true">Зарегистрироваться</a>
+        </div>
+      </form>
+
+      <form ng-show="reg" class="form-signin">
+        <h2 class="form-signin-heading">Зарегистрируйтесь</h2>
+ 
+        <input type="email" id="inputEmail" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
+	<input type="text" id="inputName" class="form-control consoleInput" placeholder="Имя" required>
+        <input type="password" id="inputPassword" class="form-control consoleInput" placeholder="Пароль" required>
+      
+        <button class="btn btn-lg  btn-block greenbtn" type="submit">Регистрация</button>
+        <div>
+          <a href="#" ng-click="reg = false">Войти</a>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
