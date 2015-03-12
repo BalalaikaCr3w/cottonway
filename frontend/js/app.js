@@ -11,6 +11,9 @@ app.config(function($routeProvider, $wampProvider) {
     });
 
     $routeProvider.
+        when('/main', {
+            templateUrl: 'partials/main.html'
+        }).
         when('/sign-in', {
             templateUrl: 'partials/sign-in.html',
             controller: 'SignInCtrl'
