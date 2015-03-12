@@ -1,12 +1,24 @@
 var app = angular.module('cottonway', [
+    'ngRoute',
+    'ngCookies',
     'vxWamp',
     "cottonwayControllers"]);
 
-app.config(function($wampProvider) {
+app.config(function($routeProvider, $wampProvider) {
     $wampProvider.init({
         url: 'wss://cottonway.club/ws/',
         realm: 'realm1'
     });
+
+    $routeProvider.
+        when('/sign-in', {
+            templateUrl: 'partials/sign-in.html',
+            controller: 'SignInCtrl'
+        }).
+        otherwise({
+            templateUrl: 'partials/loading.html',
+            controller: 'LoadingCtrl'
+        });
 });
 
 app.run(function($wamp){

@@ -1,0 +1,24 @@
+<form ng-hide="reg" class="form-signin">
+  <h2 class="form-signin-heading">Войти в клуб</h2>
+  
+  <input type="email" id="email" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
+  <input type="password" id="password" class="form-control consoleInput" placeholder="Пароль" required>
+  
+  <button class="btn btn-lg btn-block greenbtn" type="submit" ng-click="signIn(email, password)">Войти</button>
+  <div>
+    <a href="#" ng-click="reg = true">Зарегистрироваться</a>
+  </div>
+</form>
+
+<form ng-show="reg" class="form-signin">
+  <h2 class="form-signin-heading">Зарегистрируйтесь</h2>
+  
+  <input type="email" ng-model="email" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
+  <input type="text" ng-model="name" class="form-control consoleInput" placeholder="Имя" required>
+  <input type="password" ng-model="password" class="form-control consoleInput" placeholder="Пароль" required>
+  
+  <button class="btn btn-lg  btn-block greenbtn" type="submit" ng-click="signUp(email, name, password)">Регистрация</button>
+  <div>
+    <a href="#" ng-click="reg = false">Войти</a>
+  </div>
+</form>
