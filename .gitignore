@@ -5,7 +5,9 @@
 
 /new/node_modules/
 /new/bower_components/
+/new/public
 
 .DS_Store
+/new/templates.js
 
 *.pyc
