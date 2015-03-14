@@ -51,20 +51,20 @@ app
 
         $wampProvider.init(apiConfig);
     }])
-    .run(['$rootScope', '$wamp', '$state', '$cookies', 'App', 'dataService', 'apiService', 'errorService', run]);
+    .run(['$rootScope', '$wamp', '$state', '$cookies', '$location', 'App', 'dataService', 'apiService', 'errorService', run]);
 
 require('./../templates.js');
 
 angular.bootstrap(document, ['app']);
 
-function run ($rootScope, $wamp, $state, $cookies, App, dataService, apiService, errorService) {
+function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, apiService, errorService) {
 
     $rootScope.App = App;
     $rootScope.$state = $state;
     $rootScope.isCollapsed = true;
     $wamp.open();
 
-    $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {
+    $rootScope.$on('$stateChangeStart', function (e, toState, toParams, fromState, fromParams) {
 
         errorService.hide();
 
@@ -77,6 +77,11 @@ function run ($rootScope, $wamp, $state, $cookies, App, dataService, apiService,
                 $rootScope.$on('$wamp.open', process);
             }
         }
+    });
+
+    $rootScope.$on('$stateChangeSuccess', function (e) {
+
+        $rootScope.isCollapsed = true;
     });
 
     $rootScope.logout = function () {
@@ -94,10 +99,10 @@ function run ($rootScope, $wamp, $state, $cookies, App, dataService, apiService,
             $state.go('sign-in');
         } else {
 
-            apiService.call('club.cottonway.auth.send_auth_data', [ $cookies.backend_auth_data ], {}, {
-                disclose_me: true
-            })
+            apiService.call('club.cottonway.auth.send_auth_data', [ $cookies.backend_auth_data ])
                 .then(function (response) {
+                    var state;
+
                     if (response.callStatus !== 0) {
 
                         delete $cookies.backend_auth_data;
@@ -105,7 +110,8 @@ function run ($rootScope, $wamp, $state, $cookies, App, dataService, apiService,
                     } else {
 
                         dataService('user').user = response.user;
-                        $state.go('quest');
+                        state = $state.get($location.url().slice(1));
+                        $state.go(state ? state.name : 'quest');
                     }
             });
         }
