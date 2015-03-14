@@ -3,7 +3,8 @@
   
   <input type="email" ng-model="email" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
   <input type="password" ng-model="password" class="form-control consoleInput" placeholder="Пароль" required>
-  
+
+  <span ng-show="error">{{error}}</span>
   <button class="btn btn-lg btn-block greenbtn" type="submit" ng-click="signIn(email, password)">Войти</button>
   <div>
     <a href="#/sign-in" ng-click="reg = true">Зарегистрироваться</a>
@@ -16,7 +17,8 @@
   <input type="email" ng-model="email" class="form-control consoleInput" placeholder="Адрес электронной почты" required autofocus>
   <input type="text" ng-model="name" class="form-control consoleInput" placeholder="Имя" required>
   <input type="password" ng-model="password" class="form-control consoleInput" placeholder="Пароль" required>
-  
+
+  <span ng-show="error">{{error}}</span>
   <button class="btn btn-lg  btn-block greenbtn" type="submit" ng-click="signUp(email, name, password)">Регистрация</button>
   <div>
     <a href="#/sign-in" ng-click="reg = false">Войти</a>

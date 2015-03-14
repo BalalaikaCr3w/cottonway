@@ -39,7 +39,7 @@ cottonwayControllers.controller('SignInCtrl', function($scope, $cookies, $locati
     };
 
     function signInCallback(r) {
-        errors.check(r);
+        errors.check($scope, r);
         $cookies.backend_auth_data = r.authData;
         $location.path('/main');
     }

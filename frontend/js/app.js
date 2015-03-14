@@ -37,15 +37,16 @@ app.run(function($wamp) {
     $wamp.open();
 });
 
-app.factory('errors',function() {
+app.factory('errors', function() {
     var errorDesc = {
         1: 'Ошибка'
     };
     
     return {
-        check: function(r) {
+        check: function(s, r) {
             if (r.callStatus !== 0) {
-                throw errorDesc[r.callStatus];
+                s.error = errorDesc[r.callStatus];
+                throw s.error;
             }
         }
     };
