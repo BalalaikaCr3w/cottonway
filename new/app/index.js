@@ -80,6 +80,7 @@ function run ($rootScope, $wamp, $state, $cookies, App, dataService, apiService,
     });
 
     $rootScope.logout = function () {
+        dataService('user').user = false;
         delete $cookies.backend_auth_data;
         $state.go('sign-in');
     };

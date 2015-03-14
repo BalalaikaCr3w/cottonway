@@ -11,7 +11,7 @@ services.factory('errorService', ['$rootScope', function ($rootScope) {
         methods = {
 
             show: function (err) {
-                $rootScope.alert = errors[(err || {}).callStatus || 1];
+                $rootScope.alert = errors[(err || {}).callStatus] || errors[1];
             },
 
             hide: function () {
