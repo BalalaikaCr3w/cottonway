@@ -2,7 +2,6 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 from autobahn import wamp
 from autobahn.twisted.wamp import ApplicationSession
-#from autobahn.wamp.exception import ApplicationError
 
 import txmongo
 
@@ -16,9 +15,22 @@ from twisted.python import randbytes
 
 from base64 import b64encode, b64decode
 
+from enum import IntEnum
+
+
+class Error(IntEnum):
+    error = 1
+    wrongEmail = 2
+    wrongName = 3
+    wrongPassword = 4
+    wrongCredentials = 5
+    notAuthenticated = 6
+    wrongParameters = 7
+    roomAlreadyExists = 8
+
 
 def result(*args, **kwargs):
-    if len(args) != 0: kwargs['callStatus'] = args[0]
+    if len(args) != 0: kwargs['callStatus'] = int(args[0])
     else: kwargs['callStatus'] = 0
         
     return kwargs
@@ -39,6 +51,9 @@ def returnRoom(room, userId):
 
     return r
 
+def returnPeer(user):
+    return {'id': str(user['_id']), 'name': user['name']}
+
 
 class AppSession(ApplicationSession):
     @inlineCallbacks
@@ -50,7 +65,7 @@ class AppSession(ApplicationSession):
         yield self.db.sessions.drop()
         mainRoom = yield self.db.rooms.find_one({'main': True})
         if '_id' not in mainRoom:
-            yield self.db.rooms.insert({'main': True, "title" : "Cotton Way club"})
+            yield self.db.rooms.insert({'main': True, 'title' : 'Cotton Way club', 'userIds': []})
         
         yield self.subscribe(self, options=wamp.types.SubscribeOptions(details_arg='details'))
         yield self.register(self, options=wamp.types.RegisterOptions(details_arg='details'))
@@ -80,7 +95,7 @@ class AppSession(ApplicationSession):
     @inlineCallbacks
     def doSignIn(self, user, details):
         yield self.db.sessions.insert({'wampSessionId': details.caller, 'userId': user['_id']})
-        returnValue(result(user={'id': str(user['_id']), 'name': user['name']}))
+        returnValue(result(user=returnPeer(user)))
 
     @inlineCallbacks
     def doSignInAndSave(self, user, details):
@@ -95,82 +110,87 @@ class AppSession(ApplicationSession):
     def signUp(self, email, name, password, details):
         try:
             user = yield self.db.users.find_one({'$or': [{'name': name}, {'email': email}]})
-            if '_id' in user: returnValue(result(1))
+            if '_id' in user: returnValue(result(Error.error))
             
             userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password})
             user = yield self.db.users.find_one({'_id': userId})
-            
+
+            room = yield self.db.rooms.find_one({'main': True})
             yield self.db.rooms.update({'main': True}, {'$push': {'userIds': userId}})
+
+            peerSessions = yield self.db.sessions.find({'userId': {'$in': room['userIds']}})
+            peerSessionIds = map(lambda s: s['wampSessionId'], peerSessions)
+            if len(peerSessions) != 0:
+                self.publish('club.cottonway.chat.on_new_peer', {'roomId': str(room['_id']), 'peer': returnPeer(user)},
+                             options=wamp.types.PublishOptions(eligible=peerSessionIds))
 
             r = yield self.doSignInAndSave(user, details)
             returnValue(r)
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))
 
     @wamp.register(u'club.cottonway.auth.sign_in')
     @inlineCallbacks
     def signIn(self, email, password, details):
         try:
             user = yield self.db.users.find_one({'email': email})
-            if '_id' not in user: returnValue(result(1))
+            if '_id' not in user: returnValue(result(Error.error))
                 
-            if password != user['password']: returnValue(result(1))
+            if password != user['password']: returnValue(result(Error.wrongCredentials))
 
             r = yield self.doSignInAndSave(user, details)
             returnValue(r)
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))
 
     @wamp.register(u'club.cottonway.auth.send_auth_data')
     @inlineCallbacks
     def sendAuthData(self, authData, details):
         try:
             authResult = yield self.db.authdata.find_one({'authData': authData})
-            if '_id' not in authResult: returnValue(result(1))
+            if '_id' not in authResult: returnValue(result(Error.notAuthenticated))
 
             user = yield self.db.users.find_one({'_id': authResult['userId']})
-            if '_id' not in user: returnValue(result(1))
+            if '_id' not in user: returnValue(result(Error.error))
 
             r = yield self.doSignInAndSave(user, details)
             returnValue(r)
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))
 
     @wamp.register(u'club.cottonway.chat.peers')
     @inlineCallbacks
     def peers(self, peerIds, details):
         try:
             session= yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session:
-                returnValue(False)
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
                 
             users = yield self.db.users.find({'_id': {'$in': map(lambda i: ObjectId(i), peerIds)}})
-            returnValue(map(lambda u: {'id': str(u['_id']), 'name': u['name']}, users))
+            returnValue(result(peers=map(lambda u: returnPeer(u), users)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))
 
     @wamp.register(u'club.cottonway.chat.rooms')
     @inlineCallbacks
     def rooms(self, details):
         try:
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session:
-                returnValue(False)
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
                 
             rooms = yield self.db.rooms.find({'userIds': session['userId']})
-            returnValue(map(lambda r: returnRoom(r, session['userId']), rooms))
+            returnValue(result(rooms=map(lambda r: returnRoom(r, session['userId']), rooms)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))
 
     # support only private rooms now
     @wamp.register(u'club.cottonway.chat.start_room')
@@ -178,15 +198,16 @@ class AppSession(ApplicationSession):
     def startRoom(self, peerIds, details):
         try:
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session: returnValue(False)
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
 
-            if len(peerIds) != 1: returnValue(False)
+            if len(peerIds) != 1: returnValue(result(Error.wrongParameters))
 
             peer = yield self.db.users.find_one({'_id': ObjectId(peerIds[0])})
-            if '_id' not in peer: returnValue(False)
+            if '_id' not in peer: returnValue(result(Error.wrongParameters))
 
-            currentRooms = yield self.db.rooms.find({'isPrivate': True, 'userIds': {'$all': [peer['_id'], session['userId']]}})
-            if len(currentRooms) != 0: returnValue(False)
+            currentRooms = yield self.db.rooms.find({'isPrivate': True,
+                                                     'userIds': {'$all': [peer['_id'], session['userId']]}})
+            if len(currentRooms) != 0: returnValue(result(Error.roomAlreadyExists))
             
             roomId = yield self.db.rooms.insert({'isPrivate': True, 'userIds': [peer['_id'], session['userId']]})
             room = yield self.db.rooms.find_one({'_id': roomId})
@@ -196,59 +217,54 @@ class AppSession(ApplicationSession):
                 self.publish('club.cottonway.chat.on_new_room', returnRoom(room, peerSession['userId']),
                              options=wamp.types.PublishOptions(eligible=[peerSession['wampSessionId']]))
 
-            returnValue(returnRoom(room, session['userId']))
+            returnValue(result(room=returnRoom(room, session['userId'])))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))
 
     @wamp.register(u'club.cottonway.chat.messages')
     @inlineCallbacks
     def messages(self, roomId, messageIds, details):
         try:
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session:
-                returnValue(False)
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
 
             req = dict()
-
-            if roomId is not None:
-                req['roomId'] = ObjectId(roomId)
-
-            if messageIds is not None:
-                req['_id'] = {'$in': map(lambda i: ObjectId(i), messageIds)}
+            if roomId is not None: req['roomId'] = ObjectId(roomId)
+            if messageIds is not None: req['_id'] = {'$in': map(lambda i: ObjectId(i), messageIds)}
                 
             messages = yield self.db.messages.find(req)
                 
             roomIds = set(map(lambda m: m['roomId'], messages))
             userRooms = yield self.db.rooms.find({'_id': {'$in': list(roomIds)},
                                                   'userIds': session['userId']})
-            if len(roomIds) != len(userRooms):
-                return
+            if len(roomIds) != len(userRooms): returnValue(result(Error.wrongParameters))
 
             newMessages = yield self.db.newMessages.find({'messageId': {'$in': map(lambda m: m['_id'], messages)}})
             newMessages = set(map(lambda m: m['messageId'], newMessages))
 
-            returnValue(map(lambda m: returnMessage(m, m['_id'] in newMessages), messages))
+            returnValue(result(messages=map(lambda m: returnMessage(m, m['_id'] in newMessages), messages)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))
 
     @wamp.register(u'club.cottonway.chat.send_message')
     @inlineCallbacks
     def sendMessage(self, roomId, text, details):
         try:
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session:
-                returnValue(False)
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
                                                       
             room = yield self.db.rooms.find_one({'_id': ObjectId(roomId)})
-            messageId = yield self.db.messages.insert({'roomId': ObjectId(roomId), 'sender': session['userId'], 'text': text, 'time': datetime.utcnow()})
+            messageId = yield self.db.messages.insert({'roomId': ObjectId(roomId), 'sender': session['userId'],
+                                                       'text': text, 'time': datetime.utcnow()})
             peerIds = filter(lambda i: i != session['userId'], room['userIds'])
             newMessages = map(lambda i: {'userId': i, 'messageId': messageId}, peerIds)
 
-            yield self.db.newMessages.insert(newMessages)
+            if len(newMessages) != 0:
+                yield self.db.newMessages.insert(newMessages)
             message = yield self.db.messages.find_one({'_id': messageId})
             
             peerSessions = yield self.db.sessions.find({'userId': {'$in': peerIds}})
@@ -257,8 +273,8 @@ class AppSession(ApplicationSession):
                 self.publish('club.cottonway.chat.on_new_message', returnMessage(message, True),
                              options=wamp.types.PublishOptions(eligible=peerSessionIds))
             
-            returnValue(returnMessage(message, False))
+            returnValue(result(message=returnMessage(message, False)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
-            raise
+            returnValue(result(Error.error))

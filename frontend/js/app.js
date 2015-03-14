@@ -21,7 +21,12 @@ app.config(function($routeProvider, $compileProvider, $wampProvider) {
 
     $routeProvider.
         when('/main', {
-            templateUrl: 'partials/main.html'
+            templateUrl: 'partials/main.html',
+            controller: 'MainCtrl'
+        }).
+        when('/chat', {
+            templateUrl: 'partials/chat.html',
+            controller: 'ChatCtrl'
         }).
         when('/sign-in', {
             templateUrl: 'partials/sign-in.html',
@@ -50,4 +55,8 @@ app.factory('errors', function() {
             }
         }
     };
+});
+
+app.factory("user",function() {
+    return {};
 });
