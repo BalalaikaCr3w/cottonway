@@ -51,6 +51,9 @@ def returnRoom(room, userId):
 
     return r
 
+def returnPeer(user):
+    return {'id': str(user['_id']), 'name': user['name']}
+
 
 class AppSession(ApplicationSession):
     @inlineCallbacks
@@ -62,7 +65,7 @@ class AppSession(ApplicationSession):
         yield self.db.sessions.drop()
         mainRoom = yield self.db.rooms.find_one({'main': True})
         if '_id' not in mainRoom:
-            yield self.db.rooms.insert({'main': True, "title" : "Cotton Way club"})
+            yield self.db.rooms.insert({'main': True, 'title' : 'Cotton Way club', 'userIds': []})
         
         yield self.subscribe(self, options=wamp.types.SubscribeOptions(details_arg='details'))
         yield self.register(self, options=wamp.types.RegisterOptions(details_arg='details'))
@@ -92,7 +95,7 @@ class AppSession(ApplicationSession):
     @inlineCallbacks
     def doSignIn(self, user, details):
         yield self.db.sessions.insert({'wampSessionId': details.caller, 'userId': user['_id']})
-        returnValue(result(user={'id': str(user['_id']), 'name': user['name']}))
+        returnValue(result(user=returnPeer(user)))
 
     @inlineCallbacks
     def doSignInAndSave(self, user, details):
@@ -111,8 +114,15 @@ class AppSession(ApplicationSession):
             
             userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password})
             user = yield self.db.users.find_one({'_id': userId})
-            
+
+            room = yield self.db.rooms.find_one({'main': True})
             yield self.db.rooms.update({'main': True}, {'$push': {'userIds': userId}})
+
+            peerSessions = yield self.db.sessions.find({'userId': {'$in': room['userIds']}})
+            peerSessionIds = map(lambda s: s['wampSessionId'], peerSessions)
+            if len(peerSessions) != 0:
+                self.publish('club.cottonway.chat.on_new_peer', {'roomId': str(room['_id']), 'peer': returnPeer(user)},
+                             options=wamp.types.PublishOptions(eligible=peerSessionIds))
 
             r = yield self.doSignInAndSave(user, details)
             returnValue(r)
@@ -162,7 +172,7 @@ class AppSession(ApplicationSession):
             if '_id' not in session: returnValue(result(Error.notAuthenticated))
                 
             users = yield self.db.users.find({'_id': {'$in': map(lambda i: ObjectId(i), peerIds)}})
-            returnValue(result(peers=map(lambda u: {'id': str(u['_id']), 'name': u['name']}, users)))
+            returnValue(result(peers=map(lambda u: returnPeer(u), users)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
@@ -253,7 +263,8 @@ class AppSession(ApplicationSession):
             peerIds = filter(lambda i: i != session['userId'], room['userIds'])
             newMessages = map(lambda i: {'userId': i, 'messageId': messageId}, peerIds)
 
-            yield self.db.newMessages.insert(newMessages)
+            if len(newMessages) != 0:
+                yield self.db.newMessages.insert(newMessages)
             message = yield self.db.messages.find_one({'_id': messageId})
             
             peerSessions = yield self.db.sessions.find({'userId': {'$in': peerIds}})
