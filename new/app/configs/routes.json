@@ -1,0 +1,21 @@
+{
+    "list": [
+        {
+            "name": "quest",
+            "url": "/",
+            "templateUrl": "app/modules/quest/index.html"
+        }, {
+            "name": "exchange",
+            "url": "/exchange",
+            "templateUrl": "app/modules/exchange/index.html"
+        }, {
+            "name": "chat",
+            "url": "/chat",
+            "templateUrl": "app/modules/chat/index.html"
+        }, {
+            "name": "settings",
+            "url": "/settings",
+            "templateUrl": "app/modules/settings/index.html"
+        }
+    ]
+}

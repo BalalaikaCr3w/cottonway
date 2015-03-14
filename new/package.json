@@ -1,0 +1,29 @@
+{
+    "name": "CottonWay",
+    "version": "0.0.1",
+    "description": "CottonWay Club Site",
+    "dependencies": {
+        "angular": "latest",
+        "angular-bootstrap": "latest",
+        "angular-cookies": "latest",
+        "angular-ui-router": "latest",
+        "autobahn": "latest",
+        "bootstrap": "latest",
+        "express": "latest",
+        "font-awesome": "latest",
+        "lodash": "latest"
+    },
+    "devDependencies": {
+        "grunt": "latest",
+        "grunt-angular-templates": "latest",
+        "grunt-browserify": "latest",
+        "grunt-contrib-clean": "latest",
+        "grunt-contrib-concat": "latest",
+        "grunt-contrib-copy": "latest",
+        "grunt-contrib-less": "latest",
+        "grunt-contrib-uglify": "latest",
+        "grunt-contrib-watch": "latest",
+        "grunt-node-webkit-builder": "latest",
+        "grunt-html-build": "latest"
+    }
+}
