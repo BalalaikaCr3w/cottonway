@@ -2,6 +2,8 @@ var app = angular.module('cottonway', [
     'ngRoute',
     'ngCookies',
     'vxWamp',
+    "angular.filter",
+    "ui.bootstrap",
     "cottonwayControllers"]);
 
 app.config(function($routeProvider, $compileProvider, $wampProvider) {
@@ -31,11 +33,11 @@ app.config(function($routeProvider, $compileProvider, $wampProvider) {
         });
 });
 
-app.run(function($wamp){
+app.run(function($wamp) {
     $wamp.open();
 });
 
-app.factory('errors',function(){
+app.factory('errors',function() {
     var errorDesc = {
         1: 'Ошибка'
     };

@@ -44,3 +44,52 @@ cottonwayControllers.controller('SignInCtrl', function($scope, $cookies, $locati
         $location.path('/main');
     }
 });
+
+cottonwayControllers.controller("TaskCtrl", function($scope, $modalInstance, task) {
+    $scope.task = task;
+
+    $scope.send = function() {
+        
+    };
+
+    $scope.close = function() {
+        $modalInstance.dismiss();
+    };
+});
+
+cottonwayControllers.controller("MainCtrl", function($scope, $modal) {
+    $scope.tasks = [
+        {
+            name:"hello1",
+            description:"klfjgdfs"
+        },
+        {
+            name:"hello2",
+            description:"klfjgdfs"
+        },
+        {
+            name:"hello3",
+            description:"klfjgdfs"
+        },
+        {
+            name:"hello4",
+            description:"klfjgdfs"
+        }
+    ];
+
+    $scope.open = function(task){
+        var modal = $modal.open({
+            templateUrl: '/partials/task-modal.html',
+            windowTemplateUrl: '/templates/modal.html',
+            controller: 'TaskCtrl',
+            keyboard:false,
+            size: 'lg',
+            backdrop:'static',
+            resolve: {
+                task : function(){
+                    return task;
+                }
+            }
+        });
+    };
+});

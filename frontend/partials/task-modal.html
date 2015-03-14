@@ -1,0 +1,15 @@
+<div class="modal-content">
+  <div class="modal-header ModalHead">
+    <h2>{{task.name}}</h2>
+  </div>
+  <div style="height: 200px; overflow: auto; " class="modal-body">
+    <div>
+      <p>{{task.description}}</p>
+    </div>
+    <input type="text" class="form-control consoleInput" ng-model="flag" placeholder="Flag" >
+  </div>
+  <div  class="modal-footer">
+    <button type="button" class="btn greenbtn" ng-click="send()">Send</button>
+    <button type="button" class="btn greenbtn" ng-click="close()">Close</button>
+  </div>
+</div>

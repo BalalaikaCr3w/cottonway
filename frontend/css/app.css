@@ -72,3 +72,26 @@ color: green;
 .form-control:focus{
   border: green solid;
 }
+
+.modal-backdrop {
+   position: absolute;
+top: 0;
+right: 0;
+left: 0;
+bottom:0; 
+background-color:black
+}
+
+.modal-content{
+background-color: black;
+border: green solid 5px; 
+min-height: 300px; 
+}
+
+.modal-header{
+  border-bottom: green solid 1px;
+}
+
+.modal-footer{
+  border-top: green solid 1px;  
+}
