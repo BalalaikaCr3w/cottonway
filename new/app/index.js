@@ -38,7 +38,7 @@ app = angular
 
 app
     .constant('App', {
-        name: 'Application'
+        name: 'Cotton Way'
     })
     .config(['$urlRouterProvider', '$stateProvider', '$wampProvider', function ($urlRouterProvider, $stateProvider, $wampProvider) {
 
@@ -51,9 +51,11 @@ app
 
         $wampProvider.init(apiConfig);
     }])
-    .run(['$rootScope', '$wamp', 'App', function ($rootScope, $wamp, App) {
+    .run(['$rootScope', '$wamp', '$state', 'App', function ($rootScope, $wamp, $state, App) {
 
         $rootScope.App = App;
+        $rootScope.$state = $state;
+        $rootScope.isCollapsed = true;
         $wamp.open();
     }]);
 
