@@ -4,11 +4,18 @@ var app = angular.module('cottonway', [
     'vxWamp',
     "cottonwayControllers"]);
 
-app.config(function($routeProvider, $wampProvider) {
-    $wampProvider.init({
-        url: 'wss://cottonway.club/ws/',
-        realm: 'realm1'
-    });
+app.config(function($routeProvider, $compileProvider, $wampProvider) {
+    if ($compileProvider.debugInfoEnabled()) {
+        $wampProvider.init({
+            url: 'ws://127.0.0.1:8080/ws/',
+            realm: 'realm1'
+        });
+    } else {
+        $wampProvider.init({
+            url: 'wss://cottonway.club/ws/',
+            realm: 'realm1'
+        });
+    }
 
     $routeProvider.
         when('/main', {
