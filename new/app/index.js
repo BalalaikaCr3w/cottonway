@@ -51,14 +51,62 @@ app
 
         $wampProvider.init(apiConfig);
     }])
-    .run(['$rootScope', '$wamp', '$state', 'App', function ($rootScope, $wamp, $state, App) {
-
-        $rootScope.App = App;
-        $rootScope.$state = $state;
-        $rootScope.isCollapsed = true;
-        $wamp.open();
-    }]);
+    .run(['$rootScope', '$wamp', '$state', '$cookies', 'App', 'dataService', 'apiService', 'errorService', run]);
 
 require('./../templates.js');
 
 angular.bootstrap(document, ['app']);
+
+function run ($rootScope, $wamp, $state, $cookies, App, dataService, apiService, errorService) {
+
+    $rootScope.App = App;
+    $rootScope.$state = $state;
+    $rootScope.isCollapsed = true;
+    $wamp.open();
+
+    $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {
+
+        errorService.hide();
+
+        if (!dataService('user').user && toState.private) {
+            e.preventDefault();
+
+            if (!angular.isUndefined($wamp.session)) {
+                process();
+            } else {
+                $rootScope.$on('$wamp.open', process);
+            }
+        }
+    });
+
+    $rootScope.logout = function () {
+        delete $cookies.backend_auth_data;
+        $state.go('sign-in');
+    };
+
+    function process() {
+
+        dataService('user').user = false;
+
+        if (angular.isUndefined($cookies.backend_auth_data)) {
+
+            $state.go('sign-in');
+        } else {
+
+            apiService.call('club.cottonway.auth.send_auth_data', [ $cookies.backend_auth_data ], {}, {
+                disclose_me: true
+            })
+                .then(function (response) {
+                    if (response.callStatus !== 0) {
+
+                        delete $cookies.backend_auth_data;
+                        $state.go('sign-in');
+                    } else {
+
+                        dataService('user').user = response.user;
+                        $state.go('quest');
+                    }
+            });
+        }
+    }
+}
