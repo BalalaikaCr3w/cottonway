@@ -3,7 +3,7 @@ Cotton way club sources
 
 #New front
 
-##Installation
+##Development
 
 ```
 $ cd new
@@ -20,7 +20,7 @@ $ cd new
 $ grunt build
 ```
 
-Than setup your webserver on `public` folder.
+Then setup your webserver on `public` folder.
 
 ##Run locally
 
