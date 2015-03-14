@@ -1,3 +1,0 @@
-# seed
-
-Basic Application Seed
