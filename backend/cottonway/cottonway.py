@@ -21,6 +21,7 @@ import string
 
 
 class Error(IntEnum):
+    ok = 0
     error = 1
     wrongEmail = 2
     wrongName = 3
@@ -29,6 +30,8 @@ class Error(IntEnum):
     notAuthenticated = 6
     wrongParameters = 7
     roomAlreadyExists = 8
+    wrongFlag = 9
+    alreadySolved = 10
 
 
 allowedName = set(unicode(string.letters + string.ascii_uppercase + string.digits + '_'))
@@ -36,7 +39,7 @@ allowedName = set(unicode(string.letters + string.ascii_uppercase + string.digit
 
 def result(*args, **kwargs):
     if len(args) != 0: kwargs['callStatus'] = int(args[0])
-    else: kwargs['callStatus'] = 0
+    else: kwargs['callStatus'] = int(Error.ok)
         
     return kwargs
 
@@ -59,6 +62,13 @@ def returnRoom(room, userId):
 def returnPeer(user):
     return {'id': str(user['_id']), 'name': user['name']}
 
+def returnUser(user):
+    r = returnPeer(user)
+    r.update({'email': user['email'], 'score': user['score']})
+
+def returnTask(task, isSolved):
+    return {'id': str(task['_id']), 'title': task['title'], 'shortDesc': task['shortDesc'],
+            'desc': task['desc'], 'price': task['price'], 'isSolved': isSolved}
 
 class AppSession(ApplicationSession):
     @inlineCallbacks
@@ -100,7 +110,7 @@ class AppSession(ApplicationSession):
     @inlineCallbacks
     def doSignIn(self, user, details):
         yield self.db.sessions.insert({'wampSessionId': details.caller, 'userId': user['_id']})
-        returnValue(result(user=returnPeer(user)))
+        returnValue(result(user=returnUser(user)))
 
     @inlineCallbacks
     def doSignInAndSave(self, user, details):
@@ -126,7 +136,8 @@ class AppSession(ApplicationSession):
             user = yield self.db.users.find_one({'$or': [{'name': name}, {'email': email}]})
             if '_id' in user: returnValue(result(Error.error))
             
-            userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password})
+            userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password,
+                                                 'version': 0, 'score': 0, 'solvedTaskIds': []})
             user = yield self.db.users.find_one({'_id': userId})
 
             room = yield self.db.rooms.find_one({'main': True})
@@ -288,6 +299,61 @@ class AppSession(ApplicationSession):
                              options=wamp.types.PublishOptions(eligible=peerSessionIds))
             
             returnValue(result(message=returnMessage(message, False)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.exchange.tasks')
+    @inlineCallbacks
+    def tasks(self, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            solvedTaskIds = set(user['solvedTaskIds'])
+
+            tasks = yield self.db.tasks.find({'open': true})
+
+            returnValue(result(tasks=map(lambda t: returnTask(t, t['_id'] in solvedTaskIds), tasks)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.exchange.send_flag')
+    @inlineCallbacks
+    def sendFlag(self, taskId, flag, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            task = yield self.db.tasks.find_one({'_id': ObjectId(taskId), 'open': true})
+            if '_id' not in task: returnValue(result(Error.wrongParameters))
+            if flag != task['flag']: returnValue(result(Error.wrongFlag))
+
+            while True:
+                user = yield self.db.users.find_one({'_id': session['userId']})
+                if '_id' not in user: returnValue(result(Error.error))
+                if task['_id'] in set(user['solvedTaskIds']): returnValue(result(Error.alreadySolved))
+
+                version = user['version']
+                user['version'] += 1
+                user['solvedTaskIds'].append([task['_id']])
+                user['score'] += task['price']
+
+                res = yield self.db.users.update({'_id': user['_id'], 'version': version}, user)
+                if res['updatedExisting']: break
+
+            userSessions = yield self.db.sessions.find({'userId': user['_id']})
+            userSessionIds = map(lambda s: s['wampSessionId'], userSessions)
+            if len(userSessionIds) != 0:
+                self.publish('club.cottonway.exchange.on_task_updated', returnTask(task, True),
+                             options=wamp.types.PublishOptions(eligible=userSessionIds))
+
+            returnValue(result(Error.ok))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
