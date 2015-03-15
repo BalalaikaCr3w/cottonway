@@ -70,6 +70,9 @@ def returnTask(task, isSolved):
     return {'id': str(task['_id']), 'title': task['title'], 'shortDesc': task['shortDesc'],
             'desc': task['desc'], 'price': task['price'], 'isSolved': isSolved}
 
+def returnStep(step):
+    return {'id': step['id'], 'desc': step['desc'], 'time': step['time'].isoformat()}
+
 class AppSession(ApplicationSession):
     @inlineCallbacks
     def onJoin(self, details):
@@ -354,6 +357,27 @@ class AppSession(ApplicationSession):
                              options=wamp.types.PublishOptions(eligible=userSessionIds))
 
             returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.quest.steps')
+    @inlineCallbacks
+    def steps(self, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+
+            stepsAvailable = set(uset['stepIds'])
+
+            steps = yield self.db.steps.find()
+            steps = filter(lambda s: s['_id'] in stepsAvailable, steps)
+
+            returnValue(result(map(returnStep, tasks)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
