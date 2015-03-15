@@ -1,3 +1,38 @@
 <div ng-controller="chatController">
-    <h1>Chat</h1>
+    <h1>Чат с информаторами</h1>
+
+    <ul>
+        <li ng-repeat="(roomId, room) in rooms">
+            <a ng-click="setCurrentRoom(room)">{{roomTitle(room)}}</a>
+        </li>
+    </ul>
+
+    <ul>
+        <li ng-if="peers" ng-repeat="peerId in currentRoom.peerIds">
+            <a ng-click="startRoom(peerId)">{{peers[peerId].name}}</a>
+        </li>
+    </ul>
+
+    <ul>
+        <li ng-repeat="message in messages[currentRoom.id]">
+            {{message.time | date:'HH:mm:ss'}} {{getPeer(message).name}}&gt; {{message.text}}
+        </li>
+    </ul>
+
+    <form>
+        <div class="input-group">
+            <input type="text"
+                   class="form-control"
+                   ng-model="message">
+
+            <span class="input-group-btn">
+                <button class="btn btn-default"
+                        type="button"
+                        ng-click="sendMessage(message)"
+                        ng-disabled="!currentRoom">
+                    Отправить
+                </button>
+            </span>
+        </div>
+    </form>
 </div>

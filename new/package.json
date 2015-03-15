@@ -11,7 +11,8 @@
         "bootstrap": "latest",
         "express": "latest",
         "font-awesome": "latest",
-        "lodash": "latest"
+        "lodash": "latest",
+        "moment": "latest"
     },
     "devDependencies": {
         "grunt": "latest",

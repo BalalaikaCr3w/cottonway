@@ -15,7 +15,7 @@ services.factory('apiService', ['$wamp', '$q', 'errorService', function ($wamp, 
         }, options))
             .then(function (response) {
 
-                if (!response || response.callStatus !== 0) {
+                if (!response || response.callStatus) {
 
                     errorService.show(response);
                     defer.reject(response);
@@ -32,7 +32,13 @@ services.factory('apiService', ['$wamp', '$q', 'errorService', function ($wamp, 
         return defer.promise;
     }
 
+    function subscribe (method, callback) {
+
+        return $wamp.subscribe(method, callback);
+    }
+
     return {
-        call: call
+        call: call,
+        subscribe: subscribe
     };
 }]);
