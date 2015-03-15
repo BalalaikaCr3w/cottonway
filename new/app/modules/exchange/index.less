@@ -1,0 +1,59 @@
+@import "../../ui/common/variables";
+@import "../../ui/common/mixins";
+
+@main-class: '.m-exchange';
+
+.m-exchange {
+
+    &__item {
+        background-color: @mine-shaft;
+        border-color: @japanese-laurel;
+
+        &-title {
+            position: relative;
+            background-color: @mine-shaft-dark;
+            border-color: @japanese-laurel;
+            color: @white;
+        }
+
+        &_solved {
+            .m-exchange__item {
+
+                &-title {
+                    background-color: @japanese-laurel;
+                }
+            }
+        }
+
+        &:hover {
+            opacity: 0.5;
+            cursor: pointer;
+        }
+    }
+
+    &__category {
+        margin: 0 5px 3px 0;
+    }
+
+    &__badge {
+        position: absolute;
+        right: 15px;
+        background-color: @japanese-laurel;
+    }
+
+    &__filter {
+
+        margin-bottom: 20px;
+
+        &-item {
+            .ui-label();
+            .ui-label_hover();
+
+            margin-right: 10px;
+
+            &_active {
+                color: @white;
+            }
+        }
+    }
+}

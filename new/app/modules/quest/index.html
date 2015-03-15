@@ -4,7 +4,7 @@
     <ul class="m-quest__items">
         <li class="m-quest__item" ng-repeat="item in messages">
             <span class="m-quest__item-circle fa" ng-class="{
-                    'm-quest__item-circle_unresolved': $first,
+                    'm-quest__item-circle_unsolved': $first,
                     'fa-check': $index
                 }"></span>
             <span class="m-quest__item-time">{{item.timeFormatted}}</span>

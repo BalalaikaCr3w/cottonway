@@ -1,3 +1,38 @@
 <div ng-controller="exchangeController">
     <h1><i class="fa fa-money"></i> Биржа</h1>
+    <div class="row m-exchange__filter">
+        <dib class="col-xs-12">
+            <span class="m-exchange__filter-item"
+                  ng-repeat="filter in filters"
+                  ng-class="{
+                    'm-exchange__filter-item_active': currentFilter.title == filter.title
+                  }"
+                  ng-click="filterTasks(filter)">{{filter.title}}</span>
+        </dib>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-sm-4"
+             ng-repeat="item in tasksFiltered">
+            <div class="panel m-exchange__item"
+                 ng-class="{
+                    'm-exchange__item_solved': item.isSolved
+                 }">
+
+                <div class="panel-heading m-exchange__item-title">
+                    {{item.title}}
+                    <span class="badge m-exchange__badge" ng-if="!item.isSolved">{{item.price}}</span>
+                    <i class="fa fa-check m-exchange__badge" ng-if="item.isSolved"></i>
+                </div>
+
+                <div class="panel-body">
+                    <p>{{item.shortDesc}}</p>
+                    <span class="label label-default m-exchange__category"
+                          ng-repeat="category in item.categories">
+                        {{category}}
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
