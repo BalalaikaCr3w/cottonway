@@ -1,0 +1,48 @@
+@import "../../ui/common/mixins";
+
+.m-chat {
+
+    &__rooms {
+        .ui-list();
+    }
+
+    &__room {
+        .ui-label();
+        .ui-label_hover();
+
+        margin: 0 10px 5px 0;
+
+        &_active {
+            color: @white;
+        }
+    }
+
+    &__messages {
+        .ui-list();
+
+        height: 400px;
+        overflow: scroll;
+    }
+
+    &__message {
+        margin-bottom: 3px;
+        line-height: 1.2em;
+
+        &-name {
+            color: @white;
+        }
+    }
+
+    &__peers {
+        .ui-list();
+    }
+
+    &__peer {
+        color: @silver-chalice;
+
+        &:hover {
+            color: @white;
+            cursor: pointer;
+        }
+    }
+}

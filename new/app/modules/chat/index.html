@@ -1,38 +1,58 @@
 <div ng-controller="chatController">
-    <h1>Чат с информаторами</h1>
+    <h1><i class="fa fa-comments-o"></i> Чат</h1>
 
-    <ul>
-        <li ng-repeat="(roomId, room) in rooms">
-            <a ng-click="setCurrentRoom(room)">{{roomTitle(room)}}</a>
-        </li>
-    </ul>
+    <div class="row">
+        <div class="col-sm-9">
+            <ul class="m-chat__rooms">
+                <li class="m-chat__room"
+                    ng-repeat="(roomId, room) in rooms"
+                    ng-click="setCurrentRoom(room)"
+                    ng-class="{'m-chat__room_active': currentRoom.id == room.id}">
+                    <i class="fa" ng-class="{
+                        'fa-user': room.isPrivate,
+                        'fa-users': !room.isPrivate
+                    }"></i> {{roomTitle(room)}}
+                </li>
+            </ul>
 
-    <ul>
-        <li ng-if="peers" ng-repeat="peerId in currentRoom.peerIds">
-            <a ng-click="startRoom(peerId)">{{peers[peerId].name}}</a>
-        </li>
-    </ul>
+            <ul class="m-chat__messages">
+                <li class="m-chat__message"
+                    ng-repeat="message in messages[currentRoom.id]">
+                    <span class="m-chat__message-time">{{message.time | date:'HH:mm:ss'}}</span>
+                    <span class="m-chat__message-name">{{getPeer(message).name}}</span>&gt;
+                    <span class="m-chat__message-text">{{message.text}}</span>
+                </li>
+            </ul>
 
-    <ul>
-        <li ng-repeat="message in messages[currentRoom.id]">
-            {{message.time | date:'HH:mm:ss'}} {{getPeer(message).name}}&gt; {{message.text}}
-        </li>
-    </ul>
+            <form ng-submit="sendMessage(message)">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           ng-model="message">
 
-    <form>
-        <div class="input-group">
-            <input type="text"
-                   class="form-control"
-                   ng-model="message">
-
-            <span class="input-group-btn">
-                <button class="btn btn-default"
-                        type="button"
-                        ng-click="sendMessage(message)"
-                        ng-disabled="!currentRoom">
-                    Отправить
-                </button>
-            </span>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default"
+                                type="button"
+                                ng-click="sendMessage(message)"
+                                ng-disabled="!currentRoom">
+                            Отправить
+                        </button>
+                    </span>
+                </div>
+            </form>
         </div>
-    </form>
+
+        <div class="col-sm-3">
+            <p>Участники:</p>
+            <ul class="m-chat__peers">
+                <li class="m-chat__peer"
+                    ng-if="peers"
+                    ng-repeat="peerId in currentRoom.peerIds"
+                    ng-click="startRoom(peerId)">
+
+                    <i class="fa fa-user"></i> {{peers[peerId].name}}
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>

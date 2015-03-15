@@ -94,6 +94,10 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
         $state.go('sign-in');
     };
 
+    $rootScope.closeAlert = function () {
+        errorService.hide();
+    };
+
     function process() {
 
         dataService('user').user = false;

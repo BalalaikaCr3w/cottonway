@@ -34,7 +34,9 @@
         </div>
     </nav>
 
-    <alert type="{{alert.type}}" ng-if="alert">{{alert.msg}}</alert>
+    <alert type="{{alert.type}}"
+           close="closeAlert()"
+           ng-if="alert">{{alert.msg}}</alert>
 
     <div class="container" ui-view></div>
 

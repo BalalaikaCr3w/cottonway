@@ -58,27 +58,39 @@ function chatController ($scope, apiService, dataService) {
 
     $scope.startRoom = function (peerId) {
 
-        apiService.call('club.cottonway.chat.start_room', [
-            [peerId]
-        ])
-            .then(function(response) {
+        var room = _.find(_.values($scope.rooms), function (item) {
+            return item.peerIds.length === 1 && item.peerIds[0] === peerId;
+        });
 
-                $scope.rooms[response.room.id] = response.room;
-                $scope.messages[response.room.id] = [];
-            });
+        if (room) {
+
+            $scope.setCurrentRoom(room);
+        } else {
+
+            apiService.call('club.cottonway.chat.start_room', [
+                [peerId]
+            ])
+                .then(function (response) {
+
+                    $scope.rooms[response.room.id] = response.room;
+                    $scope.messages[response.room.id] = [];
+                });
+        }
     };
 
     $scope.sendMessage = function (text) {
 
-        apiService.call('club.cottonway.chat.send_message', [
-            $scope.currentRoom.id,
-            text
-        ])
-            .then(function (response) {
+        if (text) {
+            apiService.call('club.cottonway.chat.send_message', [
+                $scope.currentRoom.id,
+                text
+            ])
+                .then(function (response) {
 
-                $scope.message = '';
-                $scope.messages[$scope.currentRoom.id].push(response.message);
-            });
+                    $scope.message = '';
+                    $scope.messages[$scope.currentRoom.id].push(response.message);
+                });
+        }
     };
 
     $scope.setCurrentRoom = function (room) {
