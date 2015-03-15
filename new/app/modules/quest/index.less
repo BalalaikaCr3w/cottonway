@@ -35,6 +35,13 @@
             font-size: 20px;
             border-radius: 50%;
             border: 1px solid @japanese-laurel;
+
+            &_unresolved {
+                @animation: vibrate 2s infinite;
+
+                -webkit-animation: @animation;
+                animation: @animation;
+            }
         }
 
         &-time {
@@ -42,4 +49,27 @@
             margin-bottom: 10px;
         }
     }
+}
+
+.vibrate {
+
+    from {
+        background: @mine-shaft;
+    }
+
+    50% {
+        background: @japanese-laurel;
+    }
+
+    to {
+        background: @mine-shaft;
+    }
+}
+
+@-webkit-keyframes vibrate {
+    .vibrate()
+}
+
+@keyframes vibrate {
+    .vibrate();
 }

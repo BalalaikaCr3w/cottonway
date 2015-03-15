@@ -74,6 +74,7 @@ function chatController ($scope, apiService, dataService) {
 
                     $scope.rooms[response.room.id] = response.room;
                     $scope.messages[response.room.id] = [];
+                    $scope.setCurrentRoom(response.room);
                 });
         }
     };
