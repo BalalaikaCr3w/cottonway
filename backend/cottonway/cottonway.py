@@ -332,7 +332,7 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             solvedTaskIds = set(user['solvedTaskIds'])
 
-            tasks = yield self.db.tasks.find({'isOpen': true})
+            tasks = yield self.db.tasks.find({'isOpen': True})
 
             returnValue(result(tasks=map(lambda t: returnTask(t, t['_id'] in solvedTaskIds), tasks)))
         except Exception as e:
