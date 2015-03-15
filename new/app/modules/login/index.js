@@ -5,7 +5,9 @@ controllers.controller('loginController', ['$scope', '$state', '$cookies', 'data
 function loginController ($scope, $state, $cookies, dataService, apiService) {
 
     $scope.isRegistration = $state.current.name === 'sign-up';
-    $scope.form = {};
+    $scope.form = {
+        remember: true
+    };
 
     $scope.signIn = function () {
 
@@ -29,7 +31,9 @@ function loginController ($scope, $state, $cookies, dataService, apiService) {
     function success (response) {
 
         dataService('user').user = response.user;
-        $cookies.backend_auth_data = response.authData;
+        if ($scope.form.remember) {
+            $cookies.backend_auth_data = response.authData;
+        }
         $state.go('quest');
     }
 }

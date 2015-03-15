@@ -27,7 +27,14 @@
             </button>
         </div>
 
-        <a class="ui-link" ui-sref="sign-up">Регистрация</a>
+        <div class="m-login__helpers">
+            <span class="m-login__helper">
+                <label class="m-login__checkbox" for="remember-1">
+                    <input type="checkbox" id="remember-1" ng-model="form.remember"/> Запомнить
+                </label>
+            </span>
+            <a class="ui-link m-login__helper" ui-sref="sign-up">Регистрация</a>
+        </div>
     </form>
 
     <form class="ui-form" ng-if="isRegistration">
@@ -66,6 +73,13 @@
             </button>
         </div>
 
-        <a class="ui-link" ui-sref="sign-in">Вход в клуб</a>
+        <div class="m-login__helpers">
+            <span class="m-login__helper">
+                <label class="m-login__checkbox" for="remember-2">
+                    <input type="checkbox" id="remember-2" ng-model="form.remember"/> Запомнить
+                </label>
+            </span>
+            <a class="ui-link m-login__helper" ui-sref="sign-in">Вход в клуб</a>
+        </div>
     </form>
 </div>
