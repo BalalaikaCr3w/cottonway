@@ -60,22 +60,27 @@ function exchangeController ($scope, apiService, modalService) {
             template: 'app/modules/exchange/modal.html',
             data: item,
             onClose: function () {
-                item.wrongFlag = false;
+                item.error = false;
             }
         });
     };
 
     $scope.sendFlag = function (task, flag) {
 
-        task.wrongFlag = false;
+        task.error = false;
 
         apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {
             silent: true
         })
             .catch(function (err) {
 
-                if (err.callStatus === 9) {
-                    task.wrongFlag = true;
+                var errors = {
+                    9: 'Неверный флаг!',
+                    def: 'Ошибка'
+                };
+
+                if (err.callStatus !== 0) {
+                    task.error = errors[err.callStatus] || errors.def;
                 }
             });
     };

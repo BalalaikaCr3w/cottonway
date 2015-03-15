@@ -41,8 +41,8 @@
         </alert>
 
         <alert type="danger"
-               ng-if="modalData.wrongFlag">
-            <i class="fa fa-times"></i> Неверный флаг!
+               ng-if="modalData.error">
+            <i class="fa fa-times"></i> {{modalData.error}}
         </alert>
     </p>
 </div>
