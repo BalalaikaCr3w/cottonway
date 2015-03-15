@@ -1,4 +1,10 @@
 {
-    "url": "wss://cottonway.club/ws/",
-    "realm": "realm1"
+    "dev": {
+        "url": "ws://127.0.0.1:8080/ws/",
+        "realm": "realm1"
+    },
+    "prod": {
+        "url": "wss://cottonway.club/ws/",
+        "realm": "realm1"
+    }
 }

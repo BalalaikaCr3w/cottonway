@@ -9,7 +9,9 @@ var angular = require('angular'),
     routes = require('./configs/routes.json'),
     apiConfig = require('./configs/api.json'),
     moment = require('moment'),
+    cookie = require('cookie'),
     dependencies,
+    cookies,
     app;
 
 require('angular-ui-router');
@@ -37,6 +39,8 @@ dependencies = [
 
 moment.locale("ru");
 
+cookies = cookie.parse(document.cookie);
+
 app = angular
     .module('app', dependencies);
 
@@ -53,7 +57,7 @@ app
             $stateProvider.state(route.name, angular.extend({}, options));
         });
 
-        $wampProvider.init(apiConfig);
+        $wampProvider.init(cookies.developer ? apiConfig.dev : apiConfig.prod);
     }])
     .run(['$rootScope', '$wamp', '$state', '$cookies', '$location', 'App', 'dataService', 'apiService', 'errorService', run]);
 

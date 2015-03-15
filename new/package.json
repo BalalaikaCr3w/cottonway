@@ -9,6 +9,7 @@
         "angular-ui-router": "latest",
         "autobahn": "latest",
         "bootstrap": "latest",
+        "cookie": "latest",
         "express": "latest",
         "font-awesome": "latest",
         "lodash": "latest",
