@@ -16,6 +16,13 @@ services.factory('errorService', ['$rootScope', function ($rootScope) {
 
             hide: function () {
                 $rootScope.alert = false;
+            },
+
+            custom: function (msg) {
+                $rootScope.alert = {
+                    msg: msg,
+                    type: 'danger'
+                };
             }
         };
 
