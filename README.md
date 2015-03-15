@@ -13,7 +13,7 @@ $ grunt build-dev
 $ grunt watch
 ```
 
-In browser set the "developer" cookie to make js do requests to developer api server.
+In browser set the `developer` cookie to make js do requests to developer api server.
 
 ##Production build
 
