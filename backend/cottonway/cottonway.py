@@ -17,6 +17,8 @@ from base64 import b64encode, b64decode
 
 from enum import IntEnum
 
+import string
+
 
 class Error(IntEnum):
     error = 1
@@ -27,6 +29,9 @@ class Error(IntEnum):
     notAuthenticated = 6
     wrongParameters = 7
     roomAlreadyExists = 8
+
+
+allowedName = set(unicode(string.letters + string.ascii_uppercase + string.digits + '_'))
 
 
 def result(*args, **kwargs):
@@ -109,6 +114,15 @@ class AppSession(ApplicationSession):
     @inlineCallbacks
     def signUp(self, email, name, password, details):
         try:
+            if type(email) is not unicode or len(email) == 0 or '@' not in email:
+                returnValue(result(Error.wrongEmail))
+
+            if type(name) is not unicode or len(name) == 0 or not set(name).issubset(allowedName):
+                returnValue(result(Error.wrongName))
+
+            if type(password) is not unicode or len(password) == 0:
+                returnValue(result(Error.wrongPassword))
+
             user = yield self.db.users.find_one({'$or': [{'name': name}, {'email': email}]})
             if '_id' in user: returnValue(result(Error.error))
             
