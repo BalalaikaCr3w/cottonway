@@ -36,6 +36,18 @@ class Error(IntEnum):
 
 allowedName = set(unicode(string.letters + string.ascii_uppercase + string.digits + '_'))
 
+def checkKeys(src, keys):
+    for k in keys:
+        if k not in src:
+            return False
+    return True
+
+def copyDict(src, keys):
+    r = {}
+    for k in keys:
+        if k in src:
+            r[k] = src[k]
+    return r
 
 def result(*args, **kwargs):
     if len(args) != 0: kwargs['callStatus'] = int(args[0])
@@ -64,7 +76,8 @@ def returnPeer(user):
 
 def returnUser(user):
     r = returnPeer(user)
-    r.update({'email': user['email'], 'score': user['score']})
+    r.update(copyDict(user, ['email', 'isAdmin', 'score']))
+    return r
 
 def returnTask(task, isSolved):
     return {'id': str(task['_id']), 'title': task['title'], 'shortDesc': task['shortDesc'],
@@ -140,7 +153,8 @@ class AppSession(ApplicationSession):
             if '_id' in user: returnValue(result(Error.error))
             
             userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password,
-                                                 'version': 0, 'score': 0, 'solvedTaskIds': []})
+                                                 'isAdmin': False, 'version': 0, 'score': 0,
+                                                 'solvedTaskIds': []})
             user = yield self.db.users.find_one({'_id': userId})
 
             room = yield self.db.rooms.find_one({'main': True})
@@ -318,7 +332,7 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             solvedTaskIds = set(user['solvedTaskIds'])
 
-            tasks = yield self.db.tasks.find({'open': true})
+            tasks = yield self.db.tasks.find({'isOpen': true})
 
             returnValue(result(tasks=map(lambda t: returnTask(t, t['_id'] in solvedTaskIds), tasks)))
         except Exception as e:
@@ -355,6 +369,55 @@ class AppSession(ApplicationSession):
             if len(userSessionIds) != 0:
                 self.publish('club.cottonway.exchange.on_task_updated', returnTask(task, True),
                              options=wamp.types.PublishOptions(eligible=userSessionIds))
+
+            returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.exchange.update_task')
+    @inlineCallbacks
+    def updateTask(self, task, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            data = copyDict(task, ['title', 'shortDesc', 'desc', 'price', 'isOpen'])
+            taskId = ObjectId()
+
+            if 'id' in task:
+                t = yield self.db.tasks.find_one({'_id': ObjectId(task['id'])})
+                if '_id' not in t: returnValue(result(Error.error))
+
+                t.update(data)
+                yield self.db.tasks.update({'_id': t['_id']}, t)
+                taskId = t['_id']
+            else:
+                if not checkKeys(data, ['title', 'shortDesc', 'desc', 'price']):
+                    returnValue(result(Error.error))
+                taskId = yield self.db.tasks.insert(data)
+
+            t = yield self.db.tasks.find({'_id': taskId})
+
+            if t['isOpen']:
+                sessions = yield self.db.sessions.find()
+                users = yield self.db.users.find()
+                solved = dict(zip(map(lambda u: u['_id'], users),
+                                  map(lambda u: set(u['solvedTaskIds']), users)))
+
+                userSessionIds = {}
+                for s in sessions:
+                    if s['userId'] not in userSessions: userSessions['userId'] = []
+                    userSessions[s['userId']].append(s['wampSessionId'])
+                
+                for u in users:
+                    self.publish('club.cottonway.exchange.on_task_updated', returnTask(t, t['_id'] in solved[u['_id']]),
+                                 options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
 
             returnValue(result(Error.ok))
         except Exception as e:
