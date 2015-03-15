@@ -12,7 +12,8 @@
     </div>
     <div class="row">
         <div class="col-xs-12 col-sm-4"
-             ng-repeat="item in tasksFiltered">
+             ng-repeat="item in tasksFiltered"
+             ng-click="open(item)">
             <div class="panel m-exchange__item"
                  ng-class="{
                     'm-exchange__item_solved': item.isSolved

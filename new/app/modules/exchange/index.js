@@ -1,15 +1,12 @@
 var controllers = require('../../core/controllers'),
     _ = require('lodash');
 
-controllers.controller('exchangeController', ['$scope','apiService',  exchangeController]);
+controllers.controller('exchangeController', ['$scope','apiService', 'modalService', exchangeController]);
 
-function exchangeController ($scope, apiService) {
+function exchangeController ($scope, apiService, modalService) {
 
     apiService.call('club.cottonway.exchange.tasks')
         .then(function (response) {
-
-            console.log(response);
-            //response.tasks[0].isSolved = true;
 
             $scope.filters = _.reduce(response.tasks, function (memo, item) {
 
@@ -53,5 +50,23 @@ function exchangeController ($scope, apiService) {
         }
 
         $scope.currentFilter = filter;
+    };
+
+    $scope.open = function (item) {
+
+        modalService({
+            $scope: $scope,
+            title: item.title,
+            template: 'app/modules/exchange/modal.html',
+            data: item
+        });
+    };
+
+    $scope.sendFlag = function (taskId, flag) {
+
+        apiService.call('club.cottonway.exchange.send_flag', [taskId, flag])
+            .then(function (response) {
+                console.log(response);
+            });
     };
 }
