@@ -398,24 +398,28 @@ class AppSession(ApplicationSession):
                 yield self.db.tasks.update({'_id': t['_id']}, t)
                 taskId = t['_id']
             else:
-                if not checkKeys(data, ['title', 'shortDesc', 'desc', 'price']):
+                if not checkKeys(data, ['title', 'shortDesc', 'desc', 'price', 'isOpen']):
                     returnValue(result(Error.error))
                 taskId = yield self.db.tasks.insert(data)
 
             t = yield self.db.tasks.find({'_id': taskId})
 
-            if t['isOpen']:
-                sessions = yield self.db.sessions.find()
-                users = yield self.db.users.find()
-                solved = dict(zip(map(lambda u: u['_id'], users),
-                                  map(lambda u: set(u['solvedTaskIds']), users)))
+            sessions = yield self.db.sessions.find()
 
-                userSessionIds = {}
-                for s in sessions:
-                    if s['userId'] not in userSessions: userSessions['userId'] = []
-                    userSessions[s['userId']].append(s['wampSessionId'])
+            users = []
+            if t['isOpen']: users = yield self.db.users.find()
+            else: users = yield self.db.users.find({'isAdmin', True})
+            
+            solved = dict(zip(map(lambda u: u['_id'], users),
+                              map(lambda u: set(u['solvedTaskIds']), users)))
+
+            userSessions = {}
+            for s in sessions:
+                if s['userId'] not in userSessions: userSessions[s['userId']] = []
+                userSessions[s['userId']].append(s['wampSessionId'])
                 
-                for u in users:
+            for u in users:
+                if len(userSessions[u['_id']]) != 0:
                     self.publish('club.cottonway.exchange.on_task_updated', returnTask(t, t['_id'] in solved[u['_id']]),
                                  options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
 
