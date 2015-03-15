@@ -2,9 +2,9 @@ var controllers = require('../../core/controllers'),
     moment = require('moment'),
     _ = require('lodash');
 
-controllers.controller('questController', ['$scope', questController]);
+controllers.controller('questController', ['$scope', 'apiService', questController]);
 
-function questController ($scope) {
+function questController ($scope, apiService) {
 
     $scope.messages = [{
         time: new Date().getTime(),
@@ -23,4 +23,9 @@ function questController ($scope) {
     _.each($scope.messages, function (item) {
         item.timeFormatted = moment(item.time).format('DD MMMM, HH:mm');
     });
+
+    apiService.call('club.cottonway.quest.steps')
+        .then(function (response) {
+            console.log(response);
+        });
 }

@@ -59,7 +59,7 @@ function chatController ($scope, apiService, dataService) {
     $scope.startRoom = function (peerId) {
 
         var room = _.find(_.values($scope.rooms), function (item) {
-            return item.peerIds.length === 1 && item.peerIds[0] === peerId;
+            return item.isPrivate && item.peerIds[0] === peerId;
         });
 
         if (room) {

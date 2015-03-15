@@ -1,9 +1,15 @@
 @import "../../ui/common/mixins";
 
+.m-chat__list {
+    height: 500px;
+    overflow: auto;
+}
+
 .m-chat {
 
     &__rooms {
         .ui-list();
+        .m-chat__list();
     }
 
     &__room {
@@ -19,9 +25,7 @@
 
     &__messages {
         .ui-list();
-
-        height: 400px;
-        overflow: scroll;
+        .m-chat__list();
     }
 
     &__message {
@@ -35,6 +39,7 @@
 
     &__peers {
         .ui-list();
+        .m-chat__list();
     }
 
     &__peer {
