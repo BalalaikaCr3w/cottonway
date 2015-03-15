@@ -6,7 +6,7 @@
             <p>Комнаты:</p>
             <ul class="m-chat__rooms">
                 <li class="m-chat__room"
-                    ng-repeat="(roomId, room) in rooms"
+                    ng-repeat="room in rooms"
                     ng-click="setCurrentRoom(room)"
                     ng-class="{'m-chat__room_active': currentRoom.id == room.id}">
                     <i class="fa" ng-class="{

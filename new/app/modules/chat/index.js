@@ -17,15 +17,12 @@ function chatController ($scope, apiService, dataService) {
     apiService.call('club.cottonway.chat.rooms')
         .then(function (response) {
 
-            var peerIds = [];
-
-            $scope.rooms = {};
-
-            response.rooms = response.rooms || [];
+            var peerIds = [],
+                rooms = [];
 
             _.each(response.rooms, function (room) {
 
-                $scope.rooms[room.id] = room;
+                rooms.push(room);
                 $scope.messages[room.id] = [];
                 peerIds = _.union(peerIds, room.peerIds);
 
@@ -51,14 +48,15 @@ function chatController ($scope, apiService, dataService) {
                     }, {});
                 });
 
-            if (response.rooms.length !== 0) {
-                $scope.currentRoom = response.rooms[0];
-            }
+            $scope.rooms = _.sortBy(rooms, function (item) {
+                return +item.isPrivate;
+            });
+            $scope.currentRoom = _.first($scope.rooms);
         });
 
     $scope.startRoom = function (peerId) {
 
-        var room = _.find(_.values($scope.rooms), function (item) {
+        var room = _.find($scope.rooms, function (item) {
             return item.isPrivate && item.peerIds[0] === peerId;
         });
 
@@ -72,7 +70,7 @@ function chatController ($scope, apiService, dataService) {
             ])
                 .then(function (response) {
 
-                    $scope.rooms[response.room.id] = response.room;
+                    $scope.rooms.push(response.room);
                     $scope.messages[response.room.id] = [];
                     $scope.setCurrentRoom(response.room);
                 });
@@ -117,7 +115,7 @@ function chatController ($scope, apiService, dataService) {
 
     function onNewRoom(args) {
 
-        $scope.rooms[args[0].id] = args[0];
+        $scope.rooms.push(args[0]);
         $scope.messages[args[0].id] = [];
     }
 
@@ -131,10 +129,11 @@ function chatController ($scope, apiService, dataService) {
     function onNewPeer(args) {
 
         var roomId = args[0].roomId,
-            peer = args[0].peer;
+            peer = args[0].peer,
+            room = _.find($scope.rooms, {id: roomId});
 
         $scope.peers[peer.id] = peer;
 
-        !_.isUndefined($scope.rooms[roomId]) && $scope.rooms[roomId].peerIds.push(peer.id);
+        room && room.peerIds.push(peer.id);
     }
 }
