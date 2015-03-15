@@ -20,14 +20,15 @@
                 </button>
                 <a class="navbar-brand" ui-sref="quest">Cotton Way</a>
             </div>
-            <div id="navbar"
-                 class="collapse navbar-collapse"
+            <div class="collapse navbar-collapse"
                  collapse="isCollapsed">
                 <ul class="nav navbar-nav">
                     <li><a ui-sref="quest">Квест</a></li>
                     <li><a ui-sref="exchange">Биржа</a></li>
                     <li><a ui-sref="chat">Чат</a></li>
                     <li><a ui-sref="settings">Настройки</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right" ng-if="user.user">
                     <li><a ng-click="logout()">Выход</a></li>
                 </ul>
             </div><!--/.nav-collapse -->

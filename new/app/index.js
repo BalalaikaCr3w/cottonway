@@ -66,6 +66,8 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
     $rootScope.App = App;
     $rootScope.$state = $state;
     $rootScope.isCollapsed = true;
+    $rootScope.user = dataService('user');
+    dataService('user').user = false;
     $wamp.open();
 
     $rootScope.$on('$stateChangeStart', function (e, toState, toParams, fromState, fromParams) {
