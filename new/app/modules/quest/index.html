@@ -1,3 +1,11 @@
 <div ng-controller="questController">
-    <h1>Quest</h1>
+    <h1>Квест</h1>
+
+    <ul class="m-quest__items">
+        <li class="m-quest__item" ng-repeat="item in messages">
+            <span class="m-quest__item-circle fa" ng-class="{'fa-check': $index}"></span>
+            <span class="m-quest__item-time">{{item.timeFormatted}}</span>
+            <p>{{item.text}}</p>
+        </li>
+    </ul>
 </div>

@@ -8,6 +8,7 @@ var angular = require('angular'),
     filters = require('./core/filters'),
     routes = require('./configs/routes.json'),
     apiConfig = require('./configs/api.json'),
+    moment = require('moment'),
     dependencies,
     app;
 
@@ -15,6 +16,7 @@ require('angular-ui-router');
 require('angular-bootstrap');
 require('angular-cookies');
 require('./../bower_components/angular-wamp/release/angular-wamp');
+require('./../node_modules/moment/locale/ru');
 require('./modules');
 require('./ui');
 require('./services');
@@ -32,6 +34,8 @@ dependencies = [
     'ui.bootstrap',
     'vxWamp'
 ];
+
+moment.locale("ru");
 
 app = angular
     .module('app', dependencies);

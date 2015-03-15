@@ -78,6 +78,19 @@ module.exports = function (grunt) {
             }
         },
 
+        copy: {
+            main: {
+                files: [
+                    {
+                        cwd: 'node_modules/font-awesome',
+                        src: 'fonts/*',
+                        dest: 'public/',
+                        expand: true
+                    }
+                ]
+            }
+        },
+
         clean: ['templates.js'],
 
         watch: {
@@ -115,6 +128,7 @@ module.exports = function (grunt) {
         'ngtemplates',
         'browserify:prod',
         'uglify',
+        "copy",
         'clean'
     ]);
 
@@ -122,6 +136,7 @@ module.exports = function (grunt) {
         'htmlbuild',
         'less:prod',
         'ngtemplates',
-        'browserify:dev'
+        'browserify:dev',
+        "copy"
     ]);
 };
