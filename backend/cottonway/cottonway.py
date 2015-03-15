@@ -7,7 +7,7 @@ import txmongo
 
 from bson import ObjectId
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import traceback
 
@@ -83,8 +83,8 @@ def returnTask(task, isSolved):
     return {'id': str(task['_id']), 'title': task['title'], 'shortDesc': task['shortDesc'],
             'desc': task['desc'], 'price': task['price'], 'isSolved': isSolved}
 
-def returnStep(step):
-    return {'id': step['id'], 'desc': step['desc'], 'time': step['time'].isoformat()}
+def returnStep(step, time):
+    return {'id': str(step['_id']), 'desc': step['desc'], 'time': time.isoformat()}
 
 class AppSession(ApplicationSession):
     @inlineCallbacks
@@ -149,12 +149,23 @@ class AppSession(ApplicationSession):
             if type(password) is not unicode or len(password) == 0:
                 returnValue(result(Error.wrongPassword))
 
+            # TODO: set only first step, it's here for debug now
+            steps = yield self.db.steps.find()
+            stepsDict = dict(zip(map(lambda s: s['prev'], steps), steps))
+            stepMoments = []
+            now = datetime.utcnow()
+            step = stepsDict[None]
+            while step['_id'] in stepsDict and step['isActive']:
+                stepMoments.append({'stepId': step['_id'], 'time': now})
+                now += timedelta(hours=1)
+                step = stepsDict[step['_id']]
+
             user = yield self.db.users.find_one({'$or': [{'name': name}, {'email': email}]})
             if '_id' in user: returnValue(result(Error.error))
-            
+
             userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password,
                                                  'isAdmin': False, 'version': 0, 'score': 0,
-                                                 'solvedTaskIds': []})
+                                                 'solvedTaskIds': [], 'stepMoments': stepMoments})
             user = yield self.db.users.find_one({'_id': userId})
 
             room = yield self.db.rooms.find_one({'main': True})
@@ -439,12 +450,10 @@ class AppSession(ApplicationSession):
             user = yield self.db.users.find_one({'_id': session['userId']})
             if '_id' not in user: returnValue(result(Error.error))
 
-            stepsAvailable = set(uset['stepIds'])
-
             steps = yield self.db.steps.find()
-            steps = filter(lambda s: s['_id'] in stepsAvailable, steps)
-
-            returnValue(result(map(returnStep, tasks)))
+            stepsDict = dict(zip(map(lambda s: s['_id'], steps), steps))
+        
+            returnValue(result(steps=map(lambda m: returnStep(stepsDict[m['stepId']], m['time']), user['stepMoments'])))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
