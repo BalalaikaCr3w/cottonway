@@ -20,7 +20,7 @@ function loginController ($scope, $state, $cookies, dataService, apiService) {
 
         apiService.call('club.cottonway.auth.sign_up', [
             $scope.form.email,
-            $scope.form.username,
+            $scope.form.name,
             $scope.form.password
         ])
             .then(success);
