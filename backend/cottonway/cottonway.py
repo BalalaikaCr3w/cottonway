@@ -80,8 +80,9 @@ def returnUser(user):
     return r
 
 def returnTask(task, isSolved):
-    return {'id': str(task['_id']), 'title': task['title'], 'shortDesc': task['shortDesc'],
-            'desc': task['desc'], 'price': task['price'], 'isSolved': isSolved}
+    r = {'id': str(task['_id']), 'isSolved': isSolved}
+    r.update(copyDict(task, ['title', 'shortDesc', 'desc', 'categories', 'price']))
+    return r
 
 def returnStep(step, time):
     return {'id': str(step['_id']), 'desc': step['desc'], 'time': time.isoformat()}
@@ -398,7 +399,7 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
 
-            data = copyDict(task, ['title', 'shortDesc', 'desc', 'price', 'isOpen'])
+            data = copyDict(task, ['title', 'shortDesc', 'desc', 'categories', 'price', 'isOpen'])
             taskId = ObjectId()
 
             if 'id' in task:
@@ -409,7 +410,7 @@ class AppSession(ApplicationSession):
                 yield self.db.tasks.update({'_id': t['_id']}, t)
                 taskId = t['_id']
             else:
-                if not checkKeys(data, ['title', 'shortDesc', 'desc', 'price', 'isOpen']):
+                if not checkKeys(data, ['title', 'shortDesc', 'desc', 'categories', 'price', 'isOpen']):
                     returnValue(result(Error.error))
                 taskId = yield self.db.tasks.insert(data)
 
