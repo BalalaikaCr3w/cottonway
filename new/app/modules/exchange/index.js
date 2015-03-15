@@ -58,15 +58,33 @@ function exchangeController ($scope, apiService, modalService) {
             $scope: $scope,
             title: item.title,
             template: 'app/modules/exchange/modal.html',
-            data: item
+            data: item,
+            onClose: function () {
+                item.wrongFlag = false;
+            }
         });
     };
 
-    $scope.sendFlag = function (taskId, flag) {
+    $scope.sendFlag = function (task, flag) {
 
-        apiService.call('club.cottonway.exchange.send_flag', [taskId, flag])
-            .then(function (response) {
-                console.log(response);
+        task.wrongFlag = false;
+
+        apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {
+            silent: true
+        })
+            .catch(function (err) {
+
+                if (err.callStatus === 9) {
+                    task.wrongFlag = true;
+                }
             });
     };
+
+    apiService.subscribe('club.cottonway.chat.on_task_updated', updateTask);
+
+    function updateTask (data) {
+
+        _.extend(_.find($scope.tasks, {id: data[0].id}), data[0]);
+        $scope.filterTasks($scope.filters[0]);
+    }
 }

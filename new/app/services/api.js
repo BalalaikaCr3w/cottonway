@@ -17,7 +17,7 @@ services.factory('apiService', ['$wamp', '$q', 'errorService', function ($wamp, 
 
                 if (!response || response.callStatus) {
 
-                    errorService.show(response);
+                    !options.silent && errorService.show(response);
                     defer.reject(response);
                 } else {
 
@@ -25,7 +25,7 @@ services.factory('apiService', ['$wamp', '$q', 'errorService', function ($wamp, 
                 }
             }, function (err) {
 
-                errorService.show(err);
+                !options.silent && errorService.show(err);
                 defer.reject(err);
             });
 

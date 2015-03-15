@@ -9,7 +9,8 @@ services.factory('modalService', ['$rootScope', '$modal', function ($rootScope, 
 
     return function (options) {
 
-        var scope = (options.$scope || $rootScope).$new();
+        var scope = (options.$scope || $rootScope).$new(),
+            modal;
 
         options = options || {
             template: 'app/ui/modal/modal.html'
@@ -21,8 +22,15 @@ services.factory('modalService', ['$rootScope', '$modal', function ($rootScope, 
             title: options.title
         };
 
-        return $modal.open(_.extend({
+        modal = $modal.open(_.extend({
             scope: scope
         }, defaults));
+
+        modal.result
+            .finally(function () {
+                _.isFunction(options.onClose()) && options.onClose();
+            });
+
+        return modal;
     };
 }]);
