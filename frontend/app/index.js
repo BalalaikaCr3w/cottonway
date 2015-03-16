@@ -69,6 +69,8 @@ angular.bootstrap(document, ['app']);
 
 function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, apiService, errorService) {
 
+    var firstRun = true;
+
     $rootScope.App = App;
     $rootScope.$state = $state;
     $rootScope.isCollapsed = true;
@@ -78,7 +80,7 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
 
         errorService.hide();
 
-        if (!dataService('api').user && toState.private) {
+        if (!dataService('api').user && toState.private || firstRun) {
             e.preventDefault();
 
             if (!angular.isUndefined($wamp.session)) {
@@ -86,6 +88,8 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
             } else {
                 $rootScope.$on('$wamp.open', process);
             }
+
+            firstRun = false;
         }
     });
 

@@ -34,6 +34,11 @@
             "title": "Регистрация",
             "url": "/sign-up",
             "templateUrl": "app/modules/login/index.html"
+        }, {
+            "name": "rating",
+            "title": "Рейтинг",
+            "url": "/rating",
+            "templateUrl": "app/modules/rating/index.html"
         }
     ]
 }
