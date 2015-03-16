@@ -69,7 +69,7 @@ function exchangeController ($scope, apiService, modalService) {
 
         task.error = false;
 
-        apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {
+        apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {}, {
             silent: true
         })
             .catch(function (err) {
