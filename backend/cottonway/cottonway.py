@@ -587,8 +587,8 @@ class AppSession(ApplicationSession):
 
             rating = map(lambda u: self.getUserRating(u, stepsCount), users)
             rating = sorted(rating, key=itemgetter('lastStepTime'))
-            rating = sorted(rating, key=itemgetter('score'))
-            rating = sorted(rating, key=itemgetter('progress'))
+            rating = sorted(rating, key=itemgetter('score'), reverse=True)
+            rating = sorted(rating, key=itemgetter('progress'), reverse=True)
 
             returnValue(result(rating=rating))
         except Exception as e:
