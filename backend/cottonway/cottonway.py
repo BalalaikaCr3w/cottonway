@@ -4,6 +4,7 @@ from autobahn import wamp
 from autobahn.twisted.wamp import ApplicationSession
 
 import txmongo
+from txmongo import filter as qf
 
 from bson import ObjectId
 
@@ -85,11 +86,13 @@ def returnTask(task, isSolved):
     return r
 
 def returnStep(step, time):
-    return {'id': str(step['_id']), 'desc': step['desc'], 'time': time.isoformat()}
+    r = {'id': str(step['_id']), 'time': time.isoformat()}
+    r.update(copyDict(step, ['desc', 'seq']))
+    return r
 
 def returnAdminStep(step):
     r = {'id': str(step['_id'])}
-    r.update(copyDict(step, ['desc', 'prev', 'isActive']))
+    r.update(copyDict(step, ['desc', 'seq', 'isActive']))
     return r
 
 class AppSession(ApplicationSession):
@@ -156,15 +159,13 @@ class AppSession(ApplicationSession):
                 returnValue(result(Error.wrongPassword))
 
             # TODO: set only first step, it's here for debug now
-            steps = yield self.db.steps.find()
-            stepsDict = dict(zip(map(lambda s: s['prev'], steps), steps))
+            steps = yield self.db.steps.find(filter=qf.sort(qf.ASCENDING('seq')))
             stepMoments = []
             now = datetime.utcnow()
-            step = stepsDict[None]
-            while step['_id'] in stepsDict and step['isActive']:
+            for step in steps:
+                if not step['isActive']: break
                 stepMoments.append({'stepId': step['_id'], 'time': now})
                 now += timedelta(hours=1)
-                step = stepsDict[step['_id']]
 
             user = yield self.db.users.find_one({'$or': [{'name': name}, {'email': email}]})
             if '_id' in user: returnValue(result(Error.error))
@@ -457,7 +458,7 @@ class AppSession(ApplicationSession):
             user = yield self.db.users.find_one({'_id': session['userId']})
             if '_id' not in user: returnValue(result(Error.error))
 
-            steps = yield self.db.steps.find()
+            steps = yield self.db.steps.find(filter=qf.sort(qf.ASCENDING('seq')))
             stepsDict = dict(zip(map(lambda s: s['_id'], steps), steps))
         
             returnValue(result(steps=map(lambda m: returnStep(stepsDict[m['stepId']], m['time']), user['stepMoments'])))
@@ -477,9 +478,9 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
 
-            steps = yield self.db.steps.find()
+            steps = yield self.db.steps.find(filter=qf.sort(qf.ASCENDING('seq')))
         
-            returnValue(result(steps=map(returnAdminStep, step)))
+            returnValue(result(steps=map(returnAdminStep, steps)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
@@ -496,40 +497,27 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
 
-            fields = ['desc', 'prev', 'isActive']
-            data = copyDict(step, fields)
+            fields = ['desc', 'seq', 'isActive']
             stepId = None
-
             if 'id' in step:
-                s = yield self.db.steps.find_one({'_id': ObjectId(step['id'])})
-                if '_id' not in s: returnValue(result(Error.error))
-
-                s.update(data)
-                yield self.db.steps.update({'_id': s['_id']}, s)
+                yield self.db.steps.update({'_id': step['id']}, step)
                 stepId = s['_id']
             else:
-                if not checkKeys(data, fields): returnValue(result(Error.error))
+                if not checkKeys(step, fields): returnValue(result(Error.error))
                 stepId = yield self.db.steps.insert(data)
 
             s = yield self.db.steps.find({'_id': stepId})
 
-            users = yield self.db.users.find({'$or': [{'stepMoments.stepId': stepId}, {'isAdmin': True}]})
-            sessions = yield self.db.sessions.find({'userId': {'$in': map(lambda u: u['_id'], users)}})
+            users = yield self.db.users.find({'stepMoments.stepId': stepId})
+            yield notifyStepUpdated(users)
 
-            userSessionIds = {}
-            for s in sessions:
-                if s['userId'] not in userSessions: userSessions[s['userId']] = []
-                userSessionIds[s['userId']].append(s['wampSessionId'])
+            admins = yield self.db.users.find({'isAdmin': True})
+            adminSessionIds = yield self.getUserSessionIds(users)
 
-            for u in users:
-                if len(userSessions[u['_id']]) != 0:
-                    time = None
-                    for m in user['stepMoments']:
-                        if m['stepId'] == stepId:
-                            time = m['time']
-                            break
-                    self.publish('club.cottonway.exchange.on_step_updated', returnStep(s, time),
-                                 options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
+            for a in admins:
+                if len(adminSessionIds[u['_id']]) != 0:
+                    self.publish('club.cottonway.exchange.on_admin_step_updated', returnAdminStep(s),
+                                 options=wamp.types.PublishOptions(eligible=adminSessionIds[a['_id']]))
 
             returnValue(result(Error.ok))
         except Exception as e:
@@ -552,8 +540,31 @@ class AppSession(ApplicationSession):
                                        {'$push': {'stepMoments': {'stepId': ObjectId(stepId),
                                                                   'time': datetime.utcnow()}}})
 
+            yield self.notifyStepUpdated([user])
+
             returnValue(result(Error.ok))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
             returnValue(result(Error.error))
+
+    def getUserSessionIds(self, users):
+        sessions = yield self.db.sessions.find({'userId': {'$in': map(lambda u: u['_id'], users)}})
+
+        userSessionIds = {}
+        for session in sessions:
+            if session['userId'] not in userSessions: userSessions[session['userId']] = []
+            userSessionIds[session['userId']].append(session['wampSessionId'])
+
+        returnValue(userSessionIds)
+
+    def notifyStepUpdated(self, users):
+        userSessionIds = yield self.getUserSessionIds(users)
+
+        for u in users:
+            if len(userSessionIds[u['_id']]) != 0:
+                stepMoments = u['stepMoments']
+                stepMoments = dict(zip(map(lambda m: m['stepId'], stepMoments),
+                                       map(lambda m: m['time'], stepMoments)))
+                self.publish('club.cottonway.exchange.on_step_updated', returnStep(s, stepMoments[s['_id']]),
+                             options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
