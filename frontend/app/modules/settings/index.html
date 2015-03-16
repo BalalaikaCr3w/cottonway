@@ -1,3 +1,12 @@
-<dib ng-controller="settingsController">
+<div ng-controller="settingsController">
     <h1><i class="fa fa-cogs"></i> Settings</h1>
-</dib>
+    <div ng-show="!isPluginLoaded()">Установите Рутокен Плагин</div>
+    <div ng-show="isPluginLoaded() && !token.isAvailable">Подключите смарт-карту</div>
+    <div ng-show="token.isAvailable">
+	<input type="checkbox" ng-model="needSign">
+	<select ng-model="certId" ng-options="cert.certId as cert.commonName for cert in token.certs"></select>
+
+	<input type="text" ng-model="pin">
+	<button ng-click="login(pin)">Войти</button>
+    </div>
+</div>
