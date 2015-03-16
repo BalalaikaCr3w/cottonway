@@ -100,6 +100,7 @@ function chatController ($scope, apiService, dataService) {
 
     $scope.setCurrentRoom = function (room) {
 
+        room.newCount = 0;
         $scope.scrollOptions.static = true;
         $scope.currentRoom = room;
     };
@@ -128,7 +129,13 @@ function chatController ($scope, apiService, dataService) {
 
     function onNewMessage(args) {
 
-        var roomId = args[0].roomId;
+        var roomId = args[0].roomId,
+            room = _.find($scope.rooms, {id: roomId});
+
+        if (room) {
+            room.newCount = room.newCount || 0;
+            room.newCount += +($scope.currentRoom.id !== roomId);
+        }
 
         $scope.scrollOptions.static = false;
 

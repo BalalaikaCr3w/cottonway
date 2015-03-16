@@ -13,6 +13,8 @@
                         'fa-user': room.isPrivate,
                         'fa-users': !room.isPrivate
                     }"></i> {{roomTitle(room)}}
+                    <span class="ui-badge m-chat__badge"
+                          ng-if="room.newCount">{{room.newCount}}</span>
                 </li>
             </ul>
         </div>

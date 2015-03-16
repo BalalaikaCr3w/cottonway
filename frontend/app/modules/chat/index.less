@@ -16,7 +16,10 @@
         .ui-label();
         .ui-label_hover();
 
-        margin: 0 10px 5px 0;
+        position: relative;
+        display: block;
+        margin: 0 0 5px 0;
+        padding-right: 40px;
 
         &_active {
             color: @white;
@@ -49,5 +52,11 @@
             color: @white;
             cursor: pointer;
         }
+    }
+
+    &__badge {
+        position: absolute;
+        top: 5px;
+        right: 7px;
     }
 }
