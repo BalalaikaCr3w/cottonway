@@ -1,12 +1,12 @@
 #Intro
 Cotton way club sources
 
-#New front
+#Frontend
 
 ##Development
 
 ```
-$ cd new
+$ cd frontend
 $ npm install
 $ bower install
 $ grunt build-dev
@@ -18,7 +18,7 @@ In browser set the `developer` cookie to make js do requests to developer api se
 ##Production build
 
 ```
-$ cd new
+$ cd frontend
 $ grunt build
 ```
 
@@ -27,6 +27,6 @@ Then setup your webserver on `public` folder.
 ##Run locally
 
 ```
-$ cd new
+$ cd frontend
 $ node server/index.js
 ```

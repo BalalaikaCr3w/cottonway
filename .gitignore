@@ -1,13 +1,13 @@
 /.idea/
-/frontend/bower_components/
+
 /backend/.crossbar/
 /backend/web
 
-/new/node_modules/
-/new/bower_components/
-/new/public
+/frontend/node_modules/
+/frontend/bower_components/
+/frontend/public
 
 .DS_Store
-/new/templates.js
+/frontend/templates.js
 
 *.pyc
