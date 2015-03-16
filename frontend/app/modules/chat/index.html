@@ -26,7 +26,7 @@
                 <li class="m-chat__message"
                     ng-repeat="message in messages[currentRoom.id]">
                     <span class="m-chat__message-time">{{message.time | date:'HH:mm:ss'}}</span>
-                    <span class="m-chat__message-name">{{getPeer(message).name}}</span>&gt;
+                    <span class="m-chat__message-name">{{message.signer ? message.signer : getPeer(message).name}}</span>&gt;
                     <span class="m-chat__message-text">{{message.text}}</span>
                 </li>
             </ul>
