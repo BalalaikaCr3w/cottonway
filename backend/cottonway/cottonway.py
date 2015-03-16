@@ -364,7 +364,7 @@ class AppSession(ApplicationSession):
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
             if '_id' not in session: returnValue(result(Error.notAuthenticated))
 
-            task = yield self.db.tasks.find_one({'_id': ObjectId(taskId), 'open': true})
+            task = yield self.db.tasks.find_one({'_id': ObjectId(taskId), 'isOpen': True})
             if '_id' not in task: returnValue(result(Error.wrongParameters))
             if flag != task['flag']: returnValue(result(Error.wrongFlag))
 
@@ -375,7 +375,7 @@ class AppSession(ApplicationSession):
 
                 version = user['version']
                 user['version'] += 1
-                user['solvedTaskIds'].append([task['_id']])
+                user['solvedTaskIds'].append(task['_id'])
                 user['score'] += task['price']
 
                 res = yield self.db.users.update({'_id': user['_id'], 'version': version}, user)
