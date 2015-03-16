@@ -8,7 +8,10 @@
                 <li class="m-chat__room"
                     ng-repeat="room in rooms"
                     ng-click="setCurrentRoom(room)"
-                    ng-class="{'m-chat__room_active': currentRoom.id == room.id}">
+                    ng-class="{
+                            'm-chat__room_active': currentRoom.id == room.id,
+                            'm-chat__room_unviewed': room.newCount
+                        }">
                     <i class="fa" ng-class="{
                         'fa-user': room.isPrivate,
                         'fa-users': !room.isPrivate
