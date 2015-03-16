@@ -1,0 +1,75 @@
+@import "../../ui/common/variables";
+@import "../../ui/common/mixins";
+
+.m-quest {
+
+    &__items {
+
+        padding-left: 0;
+    }
+
+    &__item {
+
+        position: relative;
+        padding: 0 0 25px 30px;
+        list-style: none;
+        border-left: 1px solid @japanese-laurel;
+
+        &:first-child {
+            padding-top: 25px;
+        }
+
+        &:last-child {
+            border-left: none;
+        }
+
+        &-circle {
+            position: absolute;
+            display: inline-block;
+            left: 0;
+            width: 28px;
+            height: 28px;
+            margin-left: -14px;
+            padding: 3px;
+            background: @mine-shaft;
+            font-size: 20px;
+            border-radius: 50%;
+            border: 1px solid @japanese-laurel;
+
+            &_unsolved {
+                @animation: vibrate 2s infinite;
+
+                -webkit-animation: @animation;
+                animation: @animation;
+            }
+        }
+
+        &-time {
+            .ui-label();
+            margin-bottom: 10px;
+        }
+    }
+}
+
+.vibrate {
+
+    from {
+        background: @mine-shaft;
+    }
+
+    50% {
+        background: @japanese-laurel;
+    }
+
+    to {
+        background: @mine-shaft;
+    }
+}
+
+@-webkit-keyframes vibrate {
+    .vibrate()
+}
+
+@keyframes vibrate {
+    .vibrate();
+}

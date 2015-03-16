@@ -1,0 +1,39 @@
+{
+    "list": [
+        {
+            "name": "quest",
+            "title": "Квест",
+            "url": "/",
+            "templateUrl": "app/modules/quest/index.html",
+            "private": true
+        }, {
+            "name": "exchange",
+            "title": "Биржа",
+            "url": "/exchange",
+            "templateUrl": "app/modules/exchange/index.html",
+            "private": true
+        }, {
+            "name": "chat",
+            "title": "Чат",
+            "url": "/chat",
+            "templateUrl": "app/modules/chat/index.html",
+            "private": true
+        }, {
+            "name": "settings",
+            "title": "Настройки",
+            "url": "/settings",
+            "templateUrl": "app/modules/settings/index.html",
+            "private": true
+        }, {
+            "name": "sign-in",
+            "title": "Вход в систему",
+            "url": "/sign-in",
+            "templateUrl": "app/modules/login/index.html"
+        }, {
+            "name": "sign-up",
+            "title": "Регистрация",
+            "url": "/sign-up",
+            "templateUrl": "app/modules/login/index.html"
+        }
+    ]
+}

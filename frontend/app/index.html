@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{$state.current.title || App.name}}</title>
+    <link rel="stylesheet" href="index.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse ui-navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button"
+                        class="navbar-toggle collapsed"
+                        ng-click="isCollapsed = !isCollapsed">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" ui-sref="quest">Cotton Way</a>
+            </div>
+            <div class="collapse navbar-collapse"
+                 collapse="isCollapsed">
+                <ul class="nav navbar-nav">
+                    <li><a ui-sref="quest">Квест</a></li>
+                    <li><a ui-sref="exchange">Биржа</a></li>
+                    <li><a ui-sref="chat">Чат</a></li>
+                    <li><a ui-sref="settings">Настройки</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right" ng-if1="user.user">
+                    <li><a ng-click="logout()">Выход</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <alert type="{{alert.type}}"
+           close="closeAlert()"
+           ng-if="alert">{{alert.msg}}</alert>
+
+    <div class="container" ui-view></div>
+
+    <footer class="footer ui-footer">
+        <div class="container">
+            <p class="ui-footer__text">&copy; BalalaikaCr3w, 2015</p>
+        </div>
+    </footer>
+
+    <script src="index.js"></script>
+</body>
+</html>

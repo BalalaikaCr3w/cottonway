@@ -1,0 +1,85 @@
+<div ng-controller="loginController">
+    <form class="ui-form" ng-if="!isRegistration">
+        <h1>Вход в клуб</h1>
+
+        <div class="form-group">
+            <input type="email"
+                   class="form-control consoleInput"
+                   placeholder="Адрес электронной почты"
+                   required
+                   autofocus
+                   ng-model="form.email">
+        </div>
+
+        <div class="form-group">
+            <input type="password"
+                   class="form-control"
+                   placeholder="Пароль"
+                   required
+                   ng-model="form.password">
+        </div>
+
+        <div class="form-group">
+            <button type="submit"
+                    class="btn btn-lg btn-block"
+                    ng-click="signIn()">
+                Войти
+            </button>
+        </div>
+
+        <div class="m-login__helpers">
+            <span class="m-login__helper">
+                <label class="m-login__checkbox" for="remember-1">
+                    <input type="checkbox" id="remember-1" ng-model="form.remember"/> Запомнить
+                </label>
+            </span>
+            <a class="ui-link m-login__helper" ui-sref="sign-up">Регистрация</a>
+        </div>
+    </form>
+
+    <form class="ui-form" ng-if="isRegistration">
+        <h1>Регистрация</h1>
+
+        <div class="form-group">
+            <input type="email"
+                   class="form-control consoleInput"
+                   placeholder="Адрес электронной почты"
+                   required
+                   autofocus
+                   ng-model="form.email">
+        </div>
+
+        <div class="form-group">
+            <input type="text"
+                   class="form-control"
+                   placeholder="Имя"
+                   required
+                   ng-model="form.name">
+        </div>
+
+        <div class="form-group">
+            <input type="password"
+                   class="form-control"
+                   placeholder="Пароль"
+                   required
+                   ng-model="form.password">
+        </div>
+
+        <div class="form-group">
+            <button type="submit"
+                    class="btn btn-lg btn-block"
+                    ng-click="signUp()">
+                Зарегистрироваться
+            </button>
+        </div>
+
+        <div class="m-login__helpers">
+            <span class="m-login__helper">
+                <label class="m-login__checkbox" for="remember-2">
+                    <input type="checkbox" id="remember-2" ng-model="form.remember"/> Запомнить
+                </label>
+            </span>
+            <a class="ui-link m-login__helper" ui-sref="sign-in">Вход в клуб</a>
+        </div>
+    </form>
+</div>

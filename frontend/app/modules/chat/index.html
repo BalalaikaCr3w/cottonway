@@ -1,0 +1,70 @@
+<div ng-controller="chatController">
+    <h1><i class="fa fa-comments-o"></i> Чат</h1>
+
+    <div class="row">
+        <div class="col-sm-3">
+            <p>Комнаты:</p>
+            <ul class="m-chat__rooms">
+                <li class="m-chat__room"
+                    ng-repeat="room in rooms"
+                    ng-click="setCurrentRoom(room)"
+                    ng-class="{'m-chat__room_active': currentRoom.id == room.id}">
+                    <i class="fa" ng-class="{
+                        'fa-user': room.isPrivate,
+                        'fa-users': !room.isPrivate
+                    }"></i> {{roomTitle(room)}}
+                </li>
+            </ul>
+        </div>
+
+        <div ng-class="{
+                'col-sm-6': !currentRoom.isPrivate,
+                'col-sm-9': currentRoom.isPrivate
+            }">
+            <ul class="m-chat__messages"
+                ui-scroll="scrollOptions">
+                <li class="m-chat__message"
+                    ng-repeat="message in messages[currentRoom.id]">
+                    <span class="m-chat__message-time">{{message.time | date:'HH:mm:ss'}}</span>
+                    <span class="m-chat__message-name">{{getPeer(message).name}}</span>&gt;
+                    <span class="m-chat__message-text">{{message.text}}</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-sm-3" ng-if="!currentRoom.isPrivate">
+            <p>Участники:</p>
+            <ul class="m-chat__peers">
+                <li class="m-chat__peer"
+                    ng-if="peers"
+                    ng-repeat="peerId in currentRoom.peerIds"
+                    ng-click="startRoom(peerId)">
+
+                    <i class="fa fa-user"></i> {{peers[peerId].name}}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <form ng-submit="sendMessage(message)">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           maxlength="255"
+                           ng-model="message">
+
+                    <span class="input-group-btn">
+                        <button class="btn btn-default"
+                                type="button"
+                                ng-click="sendMessage(message)"
+                                ng-disabled="!currentRoom">
+                            Отправить
+                        </button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

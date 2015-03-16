@@ -1,0 +1,48 @@
+<div>
+    <p>{{modalData.desc}}</p>
+
+    <p>
+        Очки:
+        <span class="label label-success m-exchange__category">{{modalData.price}}</span>
+    </p>
+
+    <p>
+        Категории:
+        <span class="label label-default m-exchange__category"
+              ng-repeat="category in modalData.categories">
+            {{category}}
+        </span>
+    </p>
+
+    <form ng-if="!modalData.isSolved"
+          ng-submit="sendFlag(modalData, flag)">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control"
+                   ng-model="flag">
+
+            <span class="input-group-btn">
+                <button class="btn btn-default"
+                        type="button"
+                        ng-click="sendFlag(modalData, flag)"
+                        ng-disabled="!flag">
+                    Отправить
+                </button>
+            </span>
+        </div>
+    </form>
+
+    <p></p>
+
+    <p>
+        <alert type="success"
+               ng-if="modalData.isSolved">
+            <i class="fa fa-check"></i> Задание решено!
+        </alert>
+
+        <alert type="danger"
+               ng-if="modalData.error">
+            <i class="fa fa-times"></i> {{modalData.error}}
+        </alert>
+    </p>
+</div>
