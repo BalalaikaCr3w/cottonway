@@ -24,11 +24,12 @@
                  collapse="isCollapsed">
 
                 <ul class="nav navbar-nav">
-                    <li><a ui-sref="quest">Квест</a></li>
-                    <li><a ui-sref="exchange">Биржа</a></li>
-                    <li><a ui-sref="chat">Чат</a></li>
-                    <li><a ui-sref="settings">Настройки</a></li>
-                    <li><a ui-sref="rating">Рейтинг</a></li>
+                    <li ng-repeat="item in menu"
+                        ng-class="{
+                            'ui-navbar__menu-item_active': $state.current.name == item.name
+                        }">
+                        <a ui-sref="{{item.name}}">{{item.title}}</a>
+                    </li>
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right" ng-if="user.id">

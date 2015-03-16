@@ -10,6 +10,7 @@ var angular = require('angular'),
     apiConfig = require('./configs/api.json'),
     moment = require('moment'),
     cookie = require('cookie'),
+    _ = require('lodash'),
     dependencies,
     cookies,
     app;
@@ -54,7 +55,7 @@ app
 
         $urlRouterProvider.otherwise('/');
 
-        angular.forEach(routes.list, function (route) {
+        _.each(routes.list, function (route) {
             var options = route;
             $stateProvider.state(route.name, angular.extend({}, options));
         });
@@ -69,11 +70,17 @@ angular.bootstrap(document, ['app']);
 
 function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, apiService, errorService) {
 
-    var firstRun = true;
+    var firstRun = true,
+        menu = ['quest', 'exchange', 'chat', 'settings', 'rating'];
 
     $rootScope.App = App;
     $rootScope.$state = $state;
     $rootScope.isCollapsed = true;
+
+    $rootScope.menu = _.map(menu, function (item) {
+        return _.find(routes.list, {name: item})
+    });
+
     $wamp.open();
 
     $rootScope.$on('$stateChangeStart', function (e, toState, toParams, fromState, fromParams) {
