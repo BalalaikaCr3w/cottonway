@@ -12,9 +12,9 @@ function settingsController ($scope, pluginService, tokenService, dataService) {
         return pluginService.isLoaded;
     };
 
-    $scope.login = function(pin) {
+    $scope.login = function () {
 
-        tokenService.login(pin)
+        tokenService.login($scope.pin)
             .then(function () {
 
                 if (tokenService.certs.length !== 0) {

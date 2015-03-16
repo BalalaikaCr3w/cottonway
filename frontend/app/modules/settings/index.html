@@ -1,7 +1,9 @@
 <div ng-controller="settingsController">
     <h1><i class="fa fa-cogs"></i> Настройки</h1>
 
-    <p ng-show="!isPluginLoaded()">
+    <br/>
+
+    <p ng-if="!isPluginLoaded()">
         Для&nbsp;использования смарт-карты из&nbsp;браузера установите Рутокен Плагин<br/>
         [ <a href="http://www.rutoken.ru/support/download/rutoken-plugin/"
              class="ui-link"
@@ -10,15 +12,45 @@
         </a> ]
     </p>
 
-    <p ng-show="isPluginLoaded() && !token.isAvailable">
+    <p ng-if="isPluginLoaded() && !token.isAvailable">
         Для&nbsp;подписи сообщений подключите смарт-карту
     </p>
 
-    <div ng-show="token.isAvailable">
-	    <input type="checkbox" ng-model="needSign">
-	    <select ng-model="certId" ng-options="cert.certId as cert.commonName for cert in token.certs"></select>
+    <form class="ui-form" ng-if="token.isAvailable && token.isLoggedIn">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox"
+                       ng-model="needSign"> Подписывать сообщения
+            </label>
+        </div>
 
-	    <input type="text" ng-model="pin">
-	    <button ng-click="login(pin)">Войти</button>
-    </div>
+        <div class="form-group">
+            <select class="form-control"
+                    required
+                    ng-model="certId"
+                    ng-disabled="!needSign"
+                    ng-options="cert.certId as cert.commonName for cert in token.certs">
+            </select>
+        </div>
+    </form>
+
+    <form class="ui-form" ng-if="token.isAvailable && !token.isLoggedIn">
+        <div class="form-group">
+            <input type="password"
+                   class="form-control"
+                   placeholder="PIN"
+                   maxlength="10"
+                   required
+                   ng-model="pin">
+        </div>
+
+        <div class="form-group">
+            <button type="submit"
+                    class="btn btn-lg btn-block"
+                    ng-disabled="!pin"
+                    ng-click="login()">
+                Войти
+            </button>
+        </div>
+    </form>
 </div>
