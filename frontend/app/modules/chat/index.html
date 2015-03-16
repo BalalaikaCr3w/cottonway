@@ -21,7 +21,8 @@
                 'col-sm-6': !currentRoom.isPrivate,
                 'col-sm-9': currentRoom.isPrivate
             }">
-            <ul class="m-chat__messages">
+            <ul class="m-chat__messages"
+                ui-scroll="scrollOptions">
                 <li class="m-chat__message"
                     ng-repeat="message in messages[currentRoom.id]">
                     <span class="m-chat__message-time">{{message.time | date:'HH:mm:ss'}}</span>
@@ -51,6 +52,7 @@
                 <div class="input-group">
                     <input type="text"
                            class="form-control"
+                           maxlength="255"
                            ng-model="message">
 
                     <span class="input-group-btn">

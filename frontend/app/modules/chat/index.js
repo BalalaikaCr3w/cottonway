@@ -7,6 +7,9 @@ controllers.controller('chatController', ['$scope', 'apiService', 'dataService',
 function chatController ($scope, apiService, dataService) {
 
     $scope.messages = {};
+    $scope.scrollOptions = {
+        static: true
+    };
 
     apiService.subscribe('club.cottonway.chat.on_new_room', onNewRoom);
 
@@ -32,7 +35,9 @@ function chatController ($scope, apiService, dataService) {
                 ])
                     .then(function(list) {
 
-                        $scope.messages[room.id] = list.messages;
+                        $scope.messages[room.id] = _.sortBy(list.messages, function (item) {
+                            return new Date(item.time).getTime();
+                        });
                     });
             });
 
@@ -86,6 +91,7 @@ function chatController ($scope, apiService, dataService) {
             ])
                 .then(function (response) {
 
+                    $scope.scrollOptions.static = false;
                     $scope.message = '';
                     $scope.messages[$scope.currentRoom.id].push(response.message);
                 });
@@ -94,6 +100,7 @@ function chatController ($scope, apiService, dataService) {
 
     $scope.setCurrentRoom = function (room) {
 
+        $scope.scrollOptions.static = true;
         $scope.currentRoom = room;
     };
 
@@ -122,6 +129,8 @@ function chatController ($scope, apiService, dataService) {
     function onNewMessage(args) {
 
         var roomId = args[0].roomId;
+
+        $scope.scrollOptions.static = false;
 
         !_.isUndefined($scope.messages[roomId]) && $scope.messages[roomId].push(args[0]);
     }

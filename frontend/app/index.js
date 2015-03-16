@@ -17,6 +17,7 @@ var angular = require('angular'),
 require('angular-ui-router');
 require('angular-bootstrap');
 require('angular-cookies');
+require('angular-scroll');
 require('./../bower_components/angular-wamp/release/angular-wamp');
 require('./../node_modules/moment/locale/ru');
 require('./modules');
@@ -31,6 +32,7 @@ dependencies = [
     directives.name,
     services.name,
     filters.name,
+    'duScroll',
     'ngCookies',
     'ui.router',
     'ui.bootstrap',
