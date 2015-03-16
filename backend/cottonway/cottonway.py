@@ -388,6 +388,8 @@ class AppSession(ApplicationSession):
                 self.publish('club.cottonway.exchange.on_task_updated', returnTask(task, True),
                              options=wamp.types.PublishOptions(eligible=userSessionIds))
 
+            yield self.notifyRatingUpdated(user)
+
             returnValue(result(Error.ok))
         except Exception as e:
             traceback.print_exc()
@@ -541,6 +543,7 @@ class AppSession(ApplicationSession):
                                                                   'time': datetime.utcnow()}}})
 
             yield self.notifyStepUpdated([user])
+            yield self.notifyRatingUpdated(user)
 
             returnValue(result(Error.ok))
         except Exception as e:
@@ -568,3 +571,32 @@ class AppSession(ApplicationSession):
                                        map(lambda m: m['time'], stepMoments)))
                 self.publish('club.cottonway.exchange.on_step_updated', returnStep(s, stepMoments[s['_id']]),
                              options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
+
+    @wamp.register(u'club.cottonway.common.rating')
+    @inlineCallbacks
+    def rating(self, details):
+        try:
+            users = yield self.db.users.find()
+            stepsCount = yield self.db.steps.count()
+
+            rating = map(lambda u: getUserRating(u, stepsCount), users)
+            rating = sorted(rating, key=attrgetter('lastStepTime'))
+            rating = sorted(rating, key=attrgetter('score'))
+            rating = sorted(rating, key=attrgetter('progress'))
+
+            returnValue(result(rating=rating))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    def getUserRating(self, user, stepsCount):
+        r = {'id': user['_id'],
+             'progress': 100 * len(user['stepMoments']) / stepsCount,
+             'lastStepTime': max(user['stepMoments'], key=attrgetter('time'))}
+        r.update(copyDict(user, ['name', 'score']))
+        return r
+
+    def notifyRatingUpdated(self, user):
+        stepsCount = yield self.db.steps.count()
+        self.publish('club.cottonway.common.on_rating_updated', getUserRating(user, steps))
