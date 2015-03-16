@@ -114,8 +114,8 @@ function chatController ($scope, apiService, dataService) {
 
     $scope.getPeer = function (message) {
 
-        if (message.sender === dataService('user').user.id) {
-            return dataService('user').user;
+        if (message.sender === dataService('api').user.id) {
+            return dataService('api').user;
         } else {
             return $scope.peers[message.sender];
         }

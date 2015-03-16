@@ -72,15 +72,13 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
     $rootScope.App = App;
     $rootScope.$state = $state;
     $rootScope.isCollapsed = true;
-    $rootScope.user = dataService('user');
-    dataService('user').user = false;
     $wamp.open();
 
     $rootScope.$on('$stateChangeStart', function (e, toState, toParams, fromState, fromParams) {
 
         errorService.hide();
 
-        if (!dataService('user').user && toState.private) {
+        if (!dataService('api').user && toState.private) {
             e.preventDefault();
 
             if (!angular.isUndefined($wamp.session)) {
@@ -97,7 +95,7 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
     });
 
     $rootScope.logout = function () {
-        dataService('user').user = false;
+        $rootScope.setUser(false);
         delete $cookies.backend_auth_data;
         $state.go('sign-in');
     };
@@ -106,9 +104,17 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
         errorService.hide();
     };
 
+    $rootScope.setUser = function (user) {
+        $rootScope.user = dataService('api').user = user;
+    };
+
+    $rootScope.setUser(false);
+
+    apiService.subscribe('club.cottonway.user.on_user_updated', $rootScope.setUser);
+
     function process() {
 
-        dataService('user').user = false;
+        $rootScope.setUser(false);
 
         if (angular.isUndefined($cookies.backend_auth_data)) {
 
@@ -125,7 +131,7 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
                         $state.go('sign-in');
                     } else {
 
-                        dataService('user').user = response.user;
+                        $rootScope.setUser(response.user);
                         state = $state.get($location.url().slice(1));
                         $state.go(state ? state.name : 'quest');
                     }

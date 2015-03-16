@@ -30,7 +30,7 @@ function loginController ($scope, $state, $cookies, dataService, apiService) {
 
     function success (response) {
 
-        dataService('user').user = response.user;
+        $scope.setUser(response.user);
         if ($scope.form.remember) {
             $cookies.backend_auth_data = response.authData;
         }

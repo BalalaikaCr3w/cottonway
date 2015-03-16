@@ -10,6 +10,8 @@ services.factory('apiService', ['$wamp', '$q', 'errorService', function ($wamp, 
         var defer = $q.defer(),
             arr = _.isArray(data) ? data : _.values(data);
 
+        options = options || {};
+
         $wamp.call(method, arr, {}, _.extend({
             disclose_me: true
         }, options))

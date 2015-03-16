@@ -22,15 +22,27 @@
             </div>
             <div class="collapse navbar-collapse"
                  collapse="isCollapsed">
+
                 <ul class="nav navbar-nav">
                     <li><a ui-sref="quest">Квест</a></li>
                     <li><a ui-sref="exchange">Биржа</a></li>
                     <li><a ui-sref="chat">Чат</a></li>
                     <li><a ui-sref="settings">Настройки</a></li>
                 </ul>
-                <ul class="nav navbar-nav navbar-right" ng-if1="user.user">
-                    <li><a ng-click="logout()">Выход</a></li>
+
+                <ul class="nav navbar-nav navbar-right" ng-if="user.id">
+                    <li class="dropdown" dropdown>
+                        <a class="dropdown-toggle" dropdown-toggle>
+                            {{user.name}}
+                            <span class="caret"></span>
+                            <span class="ui-badge ui-badge_success">{{user.score}}</span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a ng-click="logout()">Выход</a></li>
+                        </ul>
+                    </li>
                 </ul>
+
             </div><!--/.nav-collapse -->
         </div>
     </nav>
