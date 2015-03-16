@@ -2,9 +2,9 @@ var controllers = require('../../core/controllers'),
     moment = require('moment'),
     _ = require('lodash');
 
-controllers.controller('chatController', ['$scope', 'apiService', 'dataService', chatController]);
+controllers.controller('chatController', ['$scope', 'apiService', 'dataService', 'tokenService', chatController]);
 
-function chatController ($scope, apiService, dataService) {
+function chatController ($scope, apiService, dataService, tokenService) {
 
     $scope.messages = {};
     $scope.scrollOptions = {
@@ -85,9 +85,22 @@ function chatController ($scope, apiService, dataService) {
     $scope.sendMessage = function (text) {
 
         if (text) {
+            if (dataService('needSign').var) {
+                tokenService.signMessage(dataService('certId').var, text)
+                    .then(function (signature) {
+                        send(text, signature);
+                    });
+            } else {
+                send(text, null);
+            }
+        }
+
+        function send(text, signature) {
+
             apiService.call('club.cottonway.chat.send_message', [
                 $scope.currentRoom.id,
-                text
+                text,
+                signature
             ])
                 .then(function (response) {
 
