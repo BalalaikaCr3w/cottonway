@@ -1,10 +1,18 @@
 @import "../common/variables";
 
-.ui-link {
-    color: @japanese-laurel;
+.ui-link-default {
+    color: @sea-buckthorn;
+    text-decoration: none;
+    cursor: pointer;
+}
 
-    &:hover {
-        color: @japanese-laurel;
-        text-decoration: none;
+.ui-link {
+    .ui-link-default();
+
+    &:link,
+    &:hover,
+    &:active,
+    &:visited {
+        .ui-link-default();
     }
 }

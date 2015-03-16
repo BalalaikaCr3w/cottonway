@@ -1,12 +1,24 @@
 <div ng-controller="settingsController">
-    <h1><i class="fa fa-cogs"></i> Settings</h1>
-    <div ng-show="!isPluginLoaded()">Установите Рутокен Плагин</div>
-    <div ng-show="isPluginLoaded() && !token.isAvailable">Подключите смарт-карту</div>
-    <div ng-show="token.isAvailable">
-	<input type="checkbox" ng-model="needSign">
-	<select ng-model="certId" ng-options="cert.certId as cert.commonName for cert in token.certs"></select>
+    <h1><i class="fa fa-cogs"></i> Настройки</h1>
 
-	<input type="text" ng-model="pin">
-	<button ng-click="login(pin)">Войти</button>
+    <p ng-show="!isPluginLoaded()">
+        Для&nbsp;использования смарт-карты из&nbsp;браузера установите Рутокен Плагин<br/>
+        [ <a href="http://www.rutoken.ru/support/download/rutoken-plugin/"
+             class="ui-link"
+             target="_blank">
+            <i class="fa fa-download"></i> скачать
+        </a> ]
+    </p>
+
+    <p ng-show="isPluginLoaded() && !token.isAvailable">
+        Для&nbsp;подписи сообщений подключите смарт-карту
+    </p>
+
+    <div ng-show="token.isAvailable">
+	    <input type="checkbox" ng-model="needSign">
+	    <select ng-model="certId" ng-options="cert.certId as cert.commonName for cert in token.certs"></select>
+
+	    <input type="text" ng-model="pin">
+	    <button ng-click="login(pin)">Войти</button>
     </div>
 </div>

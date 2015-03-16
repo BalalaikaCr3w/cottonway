@@ -3,8 +3,9 @@ var services = require('../core/services'),
 
 // TODO: cancel functions on changing token
 
-services.factory('tokenService', ['$q', '$rootScope', '$interval', 'pluginService',
-                                  function ($q, $rootScope, $interval, pluginService) {
+services.factory('tokenService', ['$q', '$interval', 'pluginService', tokenService]);
+
+function tokenService ($q, $interval, pluginService) {
 
     var token = {
         isAvailable: false,
@@ -14,14 +15,18 @@ services.factory('tokenService', ['$q', '$rootScope', '$interval', 'pluginServic
     };
 
     pluginService.onLoaded(function () {
+
         $interval(enumerate, 5000);
         enumerate();
     });
 
     function enumerate() {
+
         pluginService.enumerateDevices()
             .then(function (devices) {
+
                 if (devices.length == 0) {
+
                     token.isAvailable = false;
                     token.certs = [];
                     delete token.serial;
@@ -32,7 +37,8 @@ services.factory('tokenService', ['$q', '$rootScope', '$interval', 'pluginServic
 
                 pluginService.getDeviceInfo(deviceId, pluginService.TOKEN_INFO_SERIAL)
                     .then(function (serial) {
-                        if (token.serial == serial) {
+
+                        if (token.serial === serial) {
                             return;
                         }
 
@@ -45,35 +51,46 @@ services.factory('tokenService', ['$q', '$rootScope', '$interval', 'pluginServic
     }
 
     function login (pin) {
+
         return pluginService.login(token.deviceId, pin)
             .then(function () {
+
                 token.isLoggedIn = true;
 
                 return pluginService.enumerateCertificates(token.deviceId, pluginService.CERT_CATEGORY_USER);
-            }).then(function (certIds) {
-                token.certs = [];
+            })
+            .then(function (certIds) {
 
                 var prom = [];
-                angular.forEach(certIds, function(certId) {
-                    prom.push(pluginService.parseCertificate(token.deviceId, certId).then(getCertInfo(certId)));
+
+                token.certs = [];
+
+                _.each(certIds, function(certId) {
+
+                    prom.push(pluginService.parseCertificate(token.deviceId, certId)
+                        .then(getCertInfo(certId)));
                 });
 
                 function getCertInfo(certId) {
+
                     return function (certInfo) {
-                        for (var i in certInfo.subject) {
-                            if (certInfo.subject[i].rdn == "commonName") {
+
+                        _.each(certInfo.subject, function (item) {
+
+                            if (item.rdn === "commonName") {
+
                                 token.certs.push({
                                     certId: certId,
-                                    commonName: certInfo.subject[i].value
+                                    commonName: item.value
                                 });
                             }
-                        }
+                        });
                     };
                 }
 
-                 return $q.all(prom);
+                return $q.all(prom);
             });
     }
 
     return token;
-}]);
+}

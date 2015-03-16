@@ -1,18 +1,20 @@
 var services = require('../core/services'),
     _ = require('lodash');
 
-services.factory('pluginService', ['$rootScope', '$q', 'errorService', function ($rootScope, $q, errorService) {
-    var loadedCallbacks = [];
+services.factory('pluginService', ['$rootScope', '$q', 'errorService', pluginService]);
 
-    var wrapper = {
-        isLoaded: false,
-        onLoaded: onLoaded
-    };
+function pluginService ($rootScope, $q, errorService) {
 
-    var errors = {};
+    var loadedCallbacks = [],
+        wrapper = {
+            isLoaded: false,
+            onLoaded: onLoaded
+        },
+        errors = {};
 
     $rootScope.$watch('plugin', function (plugin) {
-        if (plugin == undefined) {
+
+        if (!plugin) {
             return;
         }
 
@@ -41,60 +43,56 @@ services.factory('pluginService', ['$rootScope', '$q', 'errorService', function 
         errors[plugin.errorCodes.ASN1_ERROR] = 'Ошибка декодирования ASN1 структуры';
         errors[plugin.errorCodes.WRONG_KEY_TYPE] = 'Неправильный тип ключа';
 
-        for (var f in plugin) {
-            (function (f) {
-                if (typeof(plugin[f]) == 'number') {
-                    wrapper[f] = plugin[f];
-                    return;
-                } else if (typeof(plugin[f]) != 'function') {
-                    return;
+        _.each(plugin, function (value, key) {
+
+            if (_.isNumber(value)) {
+                wrapper[key] = value;
+                return;
+            } else if (!_.isFunction(value)) {
+                return;
+            }
+
+            wrapper[key] = function () {
+
+                var defer = $q.defer(),
+                    args = [].slice.call(arguments).concat(resultCallback, errorCallback);
+
+                plugin[f].apply(plugin, args);
+
+                return defer.promise;
+
+                function resultCallback (result) {
+                    defer.resolve(result);
+                    $rootScope.$apply();
                 }
 
-                wrapper[f] = function () {
-                    var defer = $q.defer();
+                function errorCallback (code, text) {
+                    errorService.custom(errors[code]);
+                    defer.reject(code);
+                    $rootScope.$apply();
+                }
+            };
+        });
 
-                    var resultCallback = function (result) {
-                        defer.resolve(result);
-                        $rootScope.$apply();
-                    };
-
-                    var errorCallback = function (code, text) {
-                        errorService.showMessage(errors[code]);
-                        defer.reject(code);
-                        $rootScope.$apply();
-                    };
-
-                    var args = [];
-                    for (var j = 0; j < arguments.length; j++) {
-                        args[j] = arguments[j];
-                    }
-
-                    args.push(resultCallback);
-                    args.push(errorCallback);
-
-                    plugin[f].apply(plugin, args);
-
-                    return defer.promise;
-                };
-            })(f);
-        }
-
-        angular.forEach(loadedCallbacks, function(callback) {
+        _.each(loadedCallbacks, function(callback) {
             callback();
         });
     });
 
     function onLoaded(callback) {
+
         loadedCallbacks.push(callback);
+
         if (wrapper.isLoaded) {
             callback();
         }
     }
 
     return wrapper;
-}]);
+}
 
 window.onPluginLoaded = function(plugin) {
+
     var root = angular.element(document.body).scope().$root;
     root.plugin = plugin;
     root.$apply();
