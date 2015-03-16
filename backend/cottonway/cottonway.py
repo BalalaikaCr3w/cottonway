@@ -20,6 +20,8 @@ from enum import IntEnum
 
 import string
 
+from operator import itemgetter
+
 
 class Error(IntEnum):
     ok = 0
@@ -583,10 +585,10 @@ class AppSession(ApplicationSession):
             users = yield self.db.users.find()
             stepsCount = yield self.db.steps.count()
 
-            rating = map(lambda u: getUserRating(u, stepsCount), users)
-            rating = sorted(rating, key=attrgetter('lastStepTime'))
-            rating = sorted(rating, key=attrgetter('score'))
-            rating = sorted(rating, key=attrgetter('progress'))
+            rating = map(lambda u: self.getUserRating(u, stepsCount), users)
+            rating = sorted(rating, key=itemgetter('lastStepTime'))
+            rating = sorted(rating, key=itemgetter('score'))
+            rating = sorted(rating, key=itemgetter('progress'))
 
             returnValue(result(rating=rating))
         except Exception as e:
@@ -595,12 +597,12 @@ class AppSession(ApplicationSession):
             returnValue(result(Error.error))
 
     def getUserRating(self, user, stepsCount):
-        r = {'id': user['_id'],
+        r = {'id': str(user['_id']),
              'progress': 100 * len(user['stepMoments']) / stepsCount,
-             'lastStepTime': max(user['stepMoments'], key=attrgetter('time'))}
+             'lastStepTime': max(user['stepMoments'], key=itemgetter('time'))['time'].isoformat()}
         r.update(copyDict(user, ['name', 'score']))
         return r
 
     def notifyRatingUpdated(self, user):
         stepsCount = yield self.db.steps.count()
-        self.publish('club.cottonway.common.on_rating_updated', getUserRating(user, steps))
+        self.publish('club.cottonway.common.on_rating_updated', self.getUserRating(user, stepsCount))
