@@ -404,7 +404,8 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
 
-            data = copyDict(task, ['title', 'shortDesc', 'desc', 'categories', 'price', 'isOpen'])
+            fileds = ['title', 'shortDesc', 'desc', 'categories', 'price', 'flag', 'isOpen']
+            data = copyDict(task, fields)
             taskId = ObjectId()
 
             if 'id' in task:
@@ -415,7 +416,7 @@ class AppSession(ApplicationSession):
                 yield self.db.tasks.update({'_id': t['_id']}, t)
                 taskId = t['_id']
             else:
-                if not checkKeys(data, ['title', 'shortDesc', 'desc', 'categories', 'price', 'isOpen']):
+                if not checkKeys(data, fields):
                     returnValue(result(Error.error))
                 taskId = yield self.db.tasks.insert(data)
 
