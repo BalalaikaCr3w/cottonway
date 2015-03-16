@@ -152,7 +152,8 @@ class AppSession(ApplicationSession):
             if type(email) is not unicode or len(email) == 0 or '@' not in email:
                 returnValue(result(Error.wrongEmail))
 
-            if type(name) is not unicode or len(name) == 0 or not set(name).issubset(allowedName):
+            if (type(name) is not unicode or len(name) == 0 or len(name) > 10
+                or not set(name).issubset(allowedName)):
                 returnValue(result(Error.wrongName))
 
             if type(password) is not unicode or len(password) == 0:
@@ -314,6 +315,9 @@ class AppSession(ApplicationSession):
     @inlineCallbacks
     def sendMessage(self, roomId, text, details):
         try:
+            if type(text) is not unicode or len(text) == 0 or len(text) > 255:
+                returnValue(result(Error.wrongParameters))
+
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
             if '_id' not in session: returnValue(result(Error.notAuthenticated))
                                                       
