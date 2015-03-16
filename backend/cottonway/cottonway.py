@@ -7,7 +7,7 @@ import txmongo
 
 from bson import ObjectId
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import traceback
 
@@ -17,8 +17,11 @@ from base64 import b64encode, b64decode
 
 from enum import IntEnum
 
+import string
+
 
 class Error(IntEnum):
+    ok = 0
     error = 1
     wrongEmail = 2
     wrongName = 3
@@ -27,11 +30,28 @@ class Error(IntEnum):
     notAuthenticated = 6
     wrongParameters = 7
     roomAlreadyExists = 8
+    wrongFlag = 9
+    alreadySolved = 10
 
+
+allowedName = set(unicode(string.letters + string.ascii_uppercase + string.digits + '_'))
+
+def checkKeys(src, keys):
+    for k in keys:
+        if k not in src:
+            return False
+    return True
+
+def copyDict(src, keys):
+    r = {}
+    for k in keys:
+        if k in src:
+            r[k] = src[k]
+    return r
 
 def result(*args, **kwargs):
     if len(args) != 0: kwargs['callStatus'] = int(args[0])
-    else: kwargs['callStatus'] = 0
+    else: kwargs['callStatus'] = int(Error.ok)
         
     return kwargs
 
@@ -54,6 +74,23 @@ def returnRoom(room, userId):
 def returnPeer(user):
     return {'id': str(user['_id']), 'name': user['name']}
 
+def returnUser(user):
+    r = returnPeer(user)
+    r.update(copyDict(user, ['email', 'isAdmin', 'score']))
+    return r
+
+def returnTask(task, isSolved):
+    r = {'id': str(task['_id']), 'isSolved': isSolved}
+    r.update(copyDict(task, ['title', 'shortDesc', 'desc', 'categories', 'price']))
+    return r
+
+def returnStep(step, time):
+    return {'id': str(step['_id']), 'desc': step['desc'], 'time': time.isoformat()}
+
+def returnAdminStep(step):
+    r = {'id': str(step['_id'])}
+    r.update(copyDict(step, ['desc', 'prev', 'isActive']))
+    return r
 
 class AppSession(ApplicationSession):
     @inlineCallbacks
@@ -95,7 +132,7 @@ class AppSession(ApplicationSession):
     @inlineCallbacks
     def doSignIn(self, user, details):
         yield self.db.sessions.insert({'wampSessionId': details.caller, 'userId': user['_id']})
-        returnValue(result(user=returnPeer(user)))
+        returnValue(result(user=returnUser(user)))
 
     @inlineCallbacks
     def doSignInAndSave(self, user, details):
@@ -109,10 +146,32 @@ class AppSession(ApplicationSession):
     @inlineCallbacks
     def signUp(self, email, name, password, details):
         try:
+            if type(email) is not unicode or len(email) == 0 or '@' not in email:
+                returnValue(result(Error.wrongEmail))
+
+            if type(name) is not unicode or len(name) == 0 or not set(name).issubset(allowedName):
+                returnValue(result(Error.wrongName))
+
+            if type(password) is not unicode or len(password) == 0:
+                returnValue(result(Error.wrongPassword))
+
+            # TODO: set only first step, it's here for debug now
+            steps = yield self.db.steps.find()
+            stepsDict = dict(zip(map(lambda s: s['prev'], steps), steps))
+            stepMoments = []
+            now = datetime.utcnow()
+            step = stepsDict[None]
+            while step['_id'] in stepsDict and step['isActive']:
+                stepMoments.append({'stepId': step['_id'], 'time': now})
+                now += timedelta(hours=1)
+                step = stepsDict[step['_id']]
+
             user = yield self.db.users.find_one({'$or': [{'name': name}, {'email': email}]})
             if '_id' in user: returnValue(result(Error.error))
-            
-            userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password})
+
+            userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password,
+                                                 'isAdmin': False, 'version': 0, 'score': 0,
+                                                 'solvedTaskIds': [], 'stepMoments': stepMoments})
             user = yield self.db.users.find_one({'_id': userId})
 
             room = yield self.db.rooms.find_one({'main': True})
@@ -274,6 +333,226 @@ class AppSession(ApplicationSession):
                              options=wamp.types.PublishOptions(eligible=peerSessionIds))
             
             returnValue(result(message=returnMessage(message, False)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.exchange.tasks')
+    @inlineCallbacks
+    def tasks(self, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            solvedTaskIds = set(user['solvedTaskIds'])
+
+            tasks = yield self.db.tasks.find({'isOpen': True})
+
+            returnValue(result(tasks=map(lambda t: returnTask(t, t['_id'] in solvedTaskIds), tasks)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.exchange.send_flag')
+    @inlineCallbacks
+    def sendFlag(self, taskId, flag, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            task = yield self.db.tasks.find_one({'_id': ObjectId(taskId), 'isOpen': True})
+            if '_id' not in task: returnValue(result(Error.wrongParameters))
+            if flag != task['flag']: returnValue(result(Error.wrongFlag))
+
+            while True:
+                user = yield self.db.users.find_one({'_id': session['userId']})
+                if '_id' not in user: returnValue(result(Error.error))
+                if task['_id'] in set(user['solvedTaskIds']): returnValue(result(Error.alreadySolved))
+
+                version = user['version']
+                user['version'] += 1
+                user['solvedTaskIds'].append(task['_id'])
+                user['score'] += task['price']
+
+                res = yield self.db.users.update({'_id': user['_id'], 'version': version}, user)
+                if res['updatedExisting']: break
+
+            userSessions = yield self.db.sessions.find({'userId': user['_id']})
+            userSessionIds = map(lambda s: s['wampSessionId'], userSessions)
+            if len(userSessionIds) != 0:
+                self.publish('club.cottonway.exchange.on_task_updated', returnTask(task, True),
+                             options=wamp.types.PublishOptions(eligible=userSessionIds))
+
+            returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.exchange.update_task')
+    @inlineCallbacks
+    def updateTask(self, task, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            fileds = ['title', 'shortDesc', 'desc', 'categories', 'price', 'flag', 'isOpen']
+            data = copyDict(task, fields)
+            taskId = ObjectId()
+
+            if 'id' in task:
+                t = yield self.db.tasks.find_one({'_id': ObjectId(task['id'])})
+                if '_id' not in t: returnValue(result(Error.error))
+
+                t.update(data)
+                yield self.db.tasks.update({'_id': t['_id']}, t)
+                taskId = t['_id']
+            else:
+                if not checkKeys(data, fields):
+                    returnValue(result(Error.error))
+                taskId = yield self.db.tasks.insert(data)
+
+            t = yield self.db.tasks.find({'_id': taskId})
+
+            sessions = yield self.db.sessions.find()
+
+            users = []
+            if t['isOpen']: users = yield self.db.users.find()
+            else: users = yield self.db.users.find({'isAdmin', True})
+            
+            solved = dict(zip(map(lambda u: u['_id'], users),
+                              map(lambda u: set(u['solvedTaskIds']), users)))
+
+            userSessionIds = {}
+            for s in sessions:
+                if s['userId'] not in userSessions: userSessionIds[s['userId']] = []
+                userSessionIds[s['userId']].append(s['wampSessionId'])
+                
+            for u in users:
+                if len(userSessions[u['_id']]) != 0:
+                    self.publish('club.cottonway.exchange.on_task_updated', returnTask(t, t['_id'] in solved[u['_id']]),
+                                 options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
+
+            returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.quest.steps')
+    @inlineCallbacks
+    def steps(self, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+
+            steps = yield self.db.steps.find()
+            stepsDict = dict(zip(map(lambda s: s['_id'], steps), steps))
+        
+            returnValue(result(steps=map(lambda m: returnStep(stepsDict[m['stepId']], m['time']), user['stepMoments'])))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.quest.all_steps')
+    @inlineCallbacks
+    def allSteps(self, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            steps = yield self.db.steps.find()
+        
+            returnValue(result(steps=map(returnAdminStep, step)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.quest.update_step')
+    @inlineCallbacks
+    def updateStep(self, step, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            fields = ['desc', 'prev', 'isActive']
+            data = copyDict(step, fields)
+            stepId = None
+
+            if 'id' in step:
+                s = yield self.db.steps.find_one({'_id': ObjectId(step['id'])})
+                if '_id' not in s: returnValue(result(Error.error))
+
+                s.update(data)
+                yield self.db.steps.update({'_id': s['_id']}, s)
+                stepId = s['_id']
+            else:
+                if not checkKeys(data, fields): returnValue(result(Error.error))
+                stepId = yield self.db.steps.insert(data)
+
+            s = yield self.db.steps.find({'_id': stepId})
+
+            users = yield self.db.users.find({'$or': [{'stepMoments.stepId': stepId}, {'isAdmin': True}]})
+            sessions = yield self.db.sessions.find({'userId': {'$in': map(lambda u: u['_id'], users)}})
+
+            userSessionIds = {}
+            for s in sessions:
+                if s['userId'] not in userSessions: userSessions[s['userId']] = []
+                userSessionIds[s['userId']].append(s['wampSessionId'])
+
+            for u in users:
+                if len(userSessions[u['_id']]) != 0:
+                    time = None
+                    for m in user['stepMoments']:
+                        if m['stepId'] == stepId:
+                            time = m['time']
+                            break
+                    self.publish('club.cottonway.exchange.on_step_updated', returnStep(s, time),
+                                 options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
+
+            returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.quest.open_step')
+    @inlineCallbacks
+    def openStep(self, peerId, stepId, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            yield self.db.users.update({'_id': ObjectId(peerId)},
+                                       {'$push': {'stepMoments': {'stepId': ObjectId(stepId),
+                                                                  'time': datetime.utcnow()}}})
+
+            returnValue(result(Error.ok))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
