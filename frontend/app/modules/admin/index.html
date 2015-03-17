@@ -1,24 +1,66 @@
 <div ng-controller="adminController">
     <h1><i class="fa fa-unlock-alt"></i> {{$state.current.title}}</h1>
 
-    <br/>
+    <tabset class="m-admin__tabs">
+        <tab heading="Квест">
+            <form class="form-inline"
+                  ng-submit="openStepToPeer()">
+                <div class="form-group">
+                    <label>Открыть следующий шаг для</label>
+                    &nbsp;
+                    <input type="text"
+                           class="form-control"
+                           placeholder="ник игрока"
+                           required
+                           ng-model="quest.peer"
+                           typeahead="peer as peer.name for peer in peers | filter:$viewValue | limitTo:8"
+                           typeahead-input-formatter="formatPeer($model)">
+                </div>
+                &nbsp;
+                <button type="submit"
+                        class="btn btn-default"
+                        ng-disabled="!quest.peer.id">Открыть</button>
+            </form>
+        </tab>
 
-    <form class="form-inline"
-          ng-submit="openStepToPeer()">
-        <div class="form-group">
-            <label>Открыть следующий шаг для</label>
-            &nbsp;
-            <input type="text"
-                   class="form-control"
-                   placeholder="ник игрока"
-                   required
-                   ng-model="quest.peer"
-                   typeahead="peer as peer.name for peer in peers | filter:$viewValue | limitTo:8"
-                   typeahead-input-formatter="formatPeer($model)">
-        </div>
-        &nbsp;
-        <button type="submit"
-                class="btn btn-default"
-                ng-disabled="!quest.peer.id">Открыть</button>
-    </form>
+        <tab heading="Биржа">
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-4"
+                     ng-repeat="item in tasks"
+                     ng-click="openTask(item)">
+                    <div class="panel m-exchange__item"
+                         ng-class="{
+                            'm-exchange__item_solved': item.isSolved
+                         }">
+
+                        <div class="panel-heading m-exchange__item-title">
+                            {{item.title}}
+                            <span class="badge m-exchange__badge" ng-if="!item.isSolved">{{item.price}}</span>
+                            <i class="fa fa-check m-exchange__badge" ng-if="item.isSolved"></i>
+                        </div>
+
+                        <div class="panel-body">
+                            <p>{{item.shortDesc}}</p>
+                            <span class="label label-default m-exchange__category"
+                                  ng-repeat="category in item.categories">
+                                {{category}}
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-default"
+                    type="button"
+                    ng-click="openTask({isOpen: false})">
+                Добавить
+            </button>
+        </tab>
+
+        <tab heading="Участники">
+            qweqwe
+        </tab>
+    </tabset>
 </div>

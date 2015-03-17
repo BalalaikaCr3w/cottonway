@@ -1,0 +1,43 @@
+@import "../../ui/common/variables";
+
+.m-admin {
+
+    &__tabs {
+
+        .nav-tabs {
+            border-color: @japanese-laurel;
+
+            &>li {
+
+                &.active {
+
+                    &>a {
+                        background-color: @japanese-laurel;
+                        color: @white;
+                        border-color: @japanese-laurel;
+
+                        &:hover {
+                            background-color: @japanese-laurel;
+                            border-color: @japanese-laurel;
+                        }
+                    }
+                }
+
+                &>a {
+                    padding: 3px 10px;
+                    color: @white;
+
+                    &:hover {
+                        background-color: @sea-buckthorn;
+                        border-color: @sea-buckthorn;
+                        border-bottom-color: @japanese-laurel;
+                    }
+                }
+            }
+        }
+
+        .tab-content {
+            padding: 20px 0;
+        }
+    }
+}
