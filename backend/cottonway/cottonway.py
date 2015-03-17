@@ -619,6 +619,20 @@ class AppSession(ApplicationSession):
                 self.publish('club.cottonway.exchange.on_step_updated', returnStep(s, stepMoments[s['_id']]),
                              options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
 
+    @wamp.register(u'club.cottonway.common.peers')
+    @inlineCallbacks
+    def commonPeers(self, peerIds=None, details=None):
+        try:
+            query = {}
+            if peerIds is not None: query = {'_id': {'$in': map(lambda i: ObjectId(i), peerIds)}}
+
+            users = yield self.db.users.find(query)
+            returnValue(result(peers=map(lambda u: returnPeer(u), users)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
     @wamp.register(u'club.cottonway.common.rating')
     @inlineCallbacks
     def rating(self, details):
