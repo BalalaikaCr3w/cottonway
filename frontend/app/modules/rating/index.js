@@ -8,10 +8,7 @@ function ratingController ($scope, apiService, dataService) {
     $scope.$watch(function () {
 
         return dataService('api').user;
-    }, function (user) {
-
-        $scope.place = _.findIndex($scope.players, {id: user.id}) + 1;
-    });
+    }, update);
 
     load();
 
@@ -23,6 +20,11 @@ function ratingController ($scope, apiService, dataService) {
             .then(function (response) {
 
                 $scope.players = response.rating;
+                update(dataService('api').user);
             });
+    }
+
+    function update (user) {
+        $scope.place = _.findIndex($scope.players, {id: user.id}) + 1;
     }
 }
