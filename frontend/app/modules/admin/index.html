@@ -10,6 +10,7 @@
             &nbsp;
             <input type="text"
                    class="form-control"
+                   placeholder="ник игрока"
                    required
                    ng-model="quest.peer"
                    typeahead="peer as peer.name for peer in peers | filter:$viewValue | limitTo:8"
