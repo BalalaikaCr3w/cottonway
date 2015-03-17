@@ -104,14 +104,19 @@ def returnTask(task, isSolved):
     r.update(copyDict(task, ['title', 'shortDesc', 'desc', 'categories', 'price']))
     return r
 
+def returnBasicStep(step):
+    r = {'id': str(step['_id'])}
+    r.update(copyDict(step, ['desc', 'seq', 'hasAction', 'needInput']))
+    return r
+
 def returnStep(step, time):
-    r = {'id': str(step['_id']), 'time': time.isoformat()}
-    r.update(copyDict(step, ['desc', 'seq']))
+    r = returnBasicStep(step)
+    r.update({'time': time.isoformat()})
     return r
 
 def returnAdminStep(step):
-    r = {'id': str(step['_id'])}
-    r.update(copyDict(step, ['desc', 'seq', 'isActive']))
+    r = returnBasicStep(step)
+    r.update({'isActive': step['isActive']})
     return r
 
 class AppSession(ApplicationSession):
@@ -487,6 +492,25 @@ class AppSession(ApplicationSession):
             stepsDict = dict(zip(map(lambda s: s['_id'], steps), steps))
         
             returnValue(result(steps=map(lambda m: returnStep(stepsDict[m['stepId']], m['time']), user['stepMoments'])))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.quest.action')
+    @inlineCallbacks
+    def action(self, stepId, data=None, details=None):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+
+            if not ObjectId(stepId) in map(lambda m: m['stepId'], user['stepMoments']):
+                returnValue(result(Error.error))
+
+            returnValue(result())
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
