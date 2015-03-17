@@ -1,9 +1,11 @@
 var controllers = require('../../core/controllers'),
     _ = require('lodash');
 
-controllers.controller('adminController', ['$scope', '$timeout', 'apiService', adminController]);
+controllers.controller('adminController', ['$scope', '$rootScope', '$timeout', 'apiService', adminController]);
 
-function adminController ($scope, $timeout, apiService) {
+function adminController ($scope, $rootScope, $timeout, apiService) {
+
+    $scope.quest = {};
 
     $timeout(function () {
         apiService.call('club.cottonway.quest.all_steps')
@@ -14,19 +16,28 @@ function adminController ($scope, $timeout, apiService) {
         apiService.call('club.cottonway.common.peers')
             .then(function (response) {
                 $scope.peers = response.peers;
-                console.log(response);
             });
     }, 1000);
 
     $scope.openStepToPeer = function () {
 
-        //club.cottonway.quest.open_step(peerId, stepId) -> void
+        $rootScope.alert = false;
+
+        $scope.quest.peer && $scope.quest.peer.id &&
+            apiService.call('club.cottonway.admin.open_next_step', {
+                peerId: $scope.quest.peer.id
+            })
+                .then(function () {
+                    $rootScope.alert = {
+                        type: 'success',
+                        errorMessage: 'Done!'
+                    };
+                    $scope.quest.peer = '';
+                });
     };
 
-    $scope.formatPeer = function (id) {
+    $scope.formatPeer = function (peer) {
 
-        $scope.peer = _.find($scope.peers, {id: id});
-
-        return $scope.peer && $scope.peer.name || '';
+        return peer && peer.name || '';
     };
 }
