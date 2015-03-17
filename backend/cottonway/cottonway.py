@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from autobahn import wamp
@@ -36,6 +38,19 @@ class Error(IntEnum):
     wrongFlag = 9
     alreadySolved = 10
 
+errorMessages = {
+    Error.error: u'Ошибка',
+    Error.wrongEmail: u'Некорректный email',
+    Error.wrongName: u'Некорректное имя пользователя',
+    Error.wrongPassword: u'Некорректный пароль',
+    Error.wrongCredentials: u'Неверные параметры авторизации',
+    Error.notAuthenticated: u'Не аутентифицирован',
+    Error.wrongParameters: u'Неправильные параметры',
+    Error.roomAlreadyExists: u'Комната уже существует',
+    Error.wrongFlag: u'Неверный флаг',
+    Error.alreadySolved: u'Уже решено'
+}
+
 
 allowedName = set(unicode(string.letters + string.ascii_uppercase + string.digits + '_'))
 
@@ -53,8 +68,11 @@ def copyDict(src, keys):
     return r
 
 def result(*args, **kwargs):
-    if len(args) != 0: kwargs['callStatus'] = int(args[0])
-    else: kwargs['callStatus'] = int(Error.ok)
+    if len(args) != 0:
+        kwargs['callStatus'] = int(args[0])
+        kwargs['errorMessage'] = errorMessages[args[0]]
+    else:
+        kwargs['callStatus'] = int(Error.ok)
         
     return kwargs
 
