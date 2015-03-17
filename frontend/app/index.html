@@ -40,6 +40,7 @@
                             <span class="ui-badge ui-badge_success">{{user.score}}</span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
+                            <li><a ui-sref="admin" ng-if="user.isAdmin">Панель администратора</a></li>
                             <li><a ng-click="logout()">Выход</a></li>
                         </ul>
                     </li>
