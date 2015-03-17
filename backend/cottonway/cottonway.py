@@ -472,25 +472,6 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
-    @wamp.register(u'club.cottonway.quest.all_steps')
-    @inlineCallbacks
-    def allSteps(self, details):
-        try:
-            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session: returnValue(result(Error.notAuthenticated))
-
-            user = yield self.db.users.find_one({'_id': session['userId']})
-            if '_id' not in user: returnValue(result(Error.error))
-            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
-
-            steps = yield self.db.steps.find(filter=qf.sort(qf.ASCENDING('seq')))
-        
-            returnValue(result(steps=map(returnAdminStep, steps)))
-        except Exception as e:
-            traceback.print_exc()
-            traceback.print_stack()
-            returnValue(result(Error.error))
-
     @wamp.register(u'club.cottonway.quest.update_step')
     @inlineCallbacks
     def updateStep(self, step, details):
@@ -648,6 +629,25 @@ class AppSession(ApplicationSession):
             
 
             returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
+    @wamp.register(u'club.cottonway.admin.steps')
+    @inlineCallbacks
+    def adminSteps(self, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            steps = yield self.db.steps.find(filter=qf.sort(qf.ASCENDING('seq')))
+        
+            returnValue(result(steps=map(returnAdminStep, steps)))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
