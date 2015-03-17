@@ -616,7 +616,7 @@ class AppSession(ApplicationSession):
                                   map(lambda u: set(u['solvedTaskIds']), users)))
 
                 for u in users:
-                    if len(userSessionIds[u['_id']]) != 0:
+                    if u['id'] not in userSessionIds:
                         self.publish('club.cottonway.exchange.on_task_updated', returnTask(t, t['_id'] in solved[u['_id']]),
                                      options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
 
