@@ -68,11 +68,10 @@ def copyDict(src, keys):
     return r
 
 def result(*args, **kwargs):
-    if len(args) != 0:
-        kwargs['callStatus'] = int(args[0])
-        kwargs['errorMessage'] = errorMessages[args[0]]
-    else:
-        kwargs['callStatus'] = int(Error.ok)
+    if len(args) != 0: kwargs['callStatus'] = int(args[0])
+    else: kwargs['callStatus'] = int(Error.ok)
+
+    if kwargs['callStatus'] != Error.ok: kwargs['errorMessage'] = errorMessages[args[0]]
         
     return kwargs
 
