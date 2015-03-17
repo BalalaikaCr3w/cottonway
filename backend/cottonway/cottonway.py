@@ -337,7 +337,7 @@ class AppSession(ApplicationSession):
 
     @wamp.register(u'club.cottonway.chat.send_message')
     @inlineCallbacks
-    def sendMessage(self, roomId, text, details):
+    def sendMessage(self, roomId, text, details, **kwargs):
         try:
             if type(text) is not unicode or len(text) == 0 or len(text) > 255:
                 returnValue(result(Error.wrongParameters))
