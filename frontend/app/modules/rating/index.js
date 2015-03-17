@@ -6,6 +6,7 @@ function ratingController ($scope, apiService) {
 
     apiService.call('club.cottonway.common.rating')
         .then(function (response) {
-            console.log(response);
+
+            $scope.players = response.rating;
         });
 }

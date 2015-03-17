@@ -87,17 +87,17 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
 
         errorService.hide();
 
-        if (!dataService('api').user && toState.private || firstRun) {
+        if ((!dataService('api').user || firstRun) && toState.private) {
             e.preventDefault();
 
-            if (!angular.isUndefined($wamp.session)) {
+            if (getWampSession()) {
                 process();
             } else {
                 $rootScope.$on('$wamp.open', process);
             }
-
-            firstRun = false;
         }
+
+        firstRun = false;
     });
 
     $rootScope.$on('$stateChangeSuccess', function (e) {
@@ -122,6 +122,10 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
     $rootScope.setUser(false);
 
     apiService.subscribe('club.cottonway.user.on_user_updated', $rootScope.setUser);
+
+    function getWampSession () {
+        return $wamp.session || $wamp.connection._session;
+    }
 
     function process() {
 
