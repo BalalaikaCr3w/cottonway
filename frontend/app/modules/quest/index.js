@@ -6,19 +6,28 @@ controllers.controller('questController', ['$scope', 'apiService', questControll
 
 function questController ($scope, apiService) {
 
-    apiService.call('club.cottonway.quest.steps')
-        .then(function (response) {
+    load();
 
-            $scope.messages = _.chain(response.steps)
-                .sortBy(function (item) {
-                    return -(new Date(item.time)).getTime()
-                })
-                .map(function (item) {
+    apiService.subscribe('club.cottonway.exchange.on_task_updated', load);
 
-                    return _.extend({
-                        timeFormatted: moment(item.time).format('DD MMMM, HH:mm')
-                    }, item);
-                })
-                .value();
-        });
+    function load () {
+
+        apiService.call('club.cottonway.quest.steps')
+            .then(function (response) {
+
+                console.log(response);
+
+                $scope.messages = _.chain(response.steps)
+                    .sortBy(function (item) {
+                        return -(new Date(item.time)).getTime()
+                    })
+                    .map(function (item) {
+
+                        return _.extend({
+                            timeFormatted: moment(item.time).format('DD MMMM, HH:mm')
+                        }, item);
+                    })
+                    .value();
+            });
+    }
 }

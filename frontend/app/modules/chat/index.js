@@ -95,11 +95,13 @@ function chatController ($scope, apiService, dataService, tokenService) {
             }
         }
 
-        function send(text, signature) {
-	    var options = {};
-	    if (signature) {
-		options.signature = signature;
-	    }
+        function send (text, signature) {
+
+            var options = {};
+
+            if (signature) {
+                options.signature = signature;
+            }
 
             apiService.call('club.cottonway.chat.send_message', [
                 $scope.currentRoom.id,

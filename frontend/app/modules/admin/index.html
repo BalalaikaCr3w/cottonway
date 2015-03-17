@@ -1,4 +1,11 @@
 <div ng-controller="adminController">
     <h1><i class="fa fa-unlock-alt"></i> {{$state.current.title}}</h1>
 
+    <h4>Квест</h4>
+    <pre>Model: {{player | json}}</pre>
+    <input type="text"
+           class="form-control"
+           ng-model="player"
+           typeahead="peer.id as peer.name for peer in peers | filter:$viewValue | limitTo:8"
+           typeahead-input-formatter="formatPeer($model)">
 </div>
