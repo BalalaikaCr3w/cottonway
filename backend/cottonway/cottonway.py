@@ -68,11 +68,10 @@ def copyDict(src, keys):
     return r
 
 def result(*args, **kwargs):
-    if len(args) != 0:
-        kwargs['callStatus'] = int(args[0])
-        kwargs['errorMessage'] = errorMessages[args[0]]
-    else:
-        kwargs['callStatus'] = int(Error.ok)
+    if len(args) != 0: kwargs['callStatus'] = int(args[0])
+    else: kwargs['callStatus'] = int(Error.ok)
+
+    if kwargs['callStatus'] != Error.ok: kwargs['errorMessage'] = errorMessages[args[0]]
         
     return kwargs
 
@@ -105,14 +104,19 @@ def returnTask(task, isSolved):
     r.update(copyDict(task, ['title', 'shortDesc', 'desc', 'categories', 'price']))
     return r
 
+def returnBasicStep(step):
+    r = {'id': str(step['_id'])}
+    r.update(copyDict(step, ['desc', 'seq', 'hasAction', 'needInput']))
+    return r
+
 def returnStep(step, time):
-    r = {'id': str(step['_id']), 'time': time.isoformat()}
-    r.update(copyDict(step, ['desc', 'seq']))
+    r = returnBasicStep(step)
+    r.update({'time': time.isoformat()})
     return r
 
 def returnAdminStep(step):
-    r = {'id': str(step['_id'])}
-    r.update(copyDict(step, ['desc', 'seq', 'isActive']))
+    r = returnBasicStep(step)
+    r.update({'isActive': step['isActive']})
     return r
 
 class AppSession(ApplicationSession):
@@ -214,7 +218,7 @@ class AppSession(ApplicationSession):
 
     @wamp.register(u'club.cottonway.auth.sign_in')
     @inlineCallbacks
-    def signIn(self, email, password, details):
+    def signIn(self, email, password, details, **kwargs):
         try:
             user = yield self.db.users.find_one({'email': email})
             if '_id' not in user: returnValue(result(Error.error))
@@ -333,7 +337,7 @@ class AppSession(ApplicationSession):
 
     @wamp.register(u'club.cottonway.chat.send_message')
     @inlineCallbacks
-    def sendMessage(self, roomId, text, details):
+    def sendMessage(self, roomId, text, details, **kwargs):
         try:
             if type(text) is not unicode or len(text) == 0 or len(text) > 255:
                 returnValue(result(Error.wrongParameters))
@@ -493,6 +497,25 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
+    @wamp.register(u'club.cottonway.quest.action')
+    @inlineCallbacks
+    def action(self, stepId, data=None, details=None):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+
+            if not ObjectId(stepId) in map(lambda m: m['stepId'], user['stepMoments']):
+                returnValue(result(Error.error))
+
+            returnValue(result())
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
     @wamp.register(u'club.cottonway.quest.all_steps')
     @inlineCallbacks
     def allSteps(self, details):
@@ -595,6 +618,20 @@ class AppSession(ApplicationSession):
                                        map(lambda m: m['time'], stepMoments)))
                 self.publish('club.cottonway.exchange.on_step_updated', returnStep(s, stepMoments[s['_id']]),
                              options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
+
+    @wamp.register(u'club.cottonway.common.peers')
+    @inlineCallbacks
+    def commonPeers(self, peerIds=None, details=None):
+        try:
+            query = {}
+            if peerIds is not None: query = {'_id': {'$in': map(lambda i: ObjectId(i), peerIds)}}
+
+            users = yield self.db.users.find(query)
+            returnValue(result(peers=map(lambda u: returnPeer(u), users)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
 
     @wamp.register(u'club.cottonway.common.rating')
     @inlineCallbacks
