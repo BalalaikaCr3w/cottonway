@@ -8,7 +8,7 @@ function questController ($scope, apiService) {
 
     load();
 
-    apiService.subscribe('club.cottonway.exchange.on_task_updated', load);
+    apiService.subscribe('club.cottonway.quest.on_step_updated', load);
 
     function load () {
 
