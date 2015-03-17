@@ -5,37 +5,7 @@ controllers.controller('exchangeController', ['$scope','apiService', 'modalServi
 
 function exchangeController ($scope, apiService, modalService) {
 
-    apiService.call('club.cottonway.exchange.tasks')
-        .then(function (response) {
-
-            $scope.filters = _.reduce(response.tasks, function (memo, item) {
-
-                _.each(item.categories, function (category) {
-
-                    if (!_.find(memo, {value: category})) {
-
-                        memo.push({
-                            title: category,
-                            value: category
-                        });
-                    }
-                });
-
-                return memo;
-            }, []);
-
-            $scope.filters = [{
-                title: 'Все',
-                value: {}
-            }, {
-                title: 'Нерешенные',
-                value: {isSolved: false}
-            }]
-                .concat($scope.filters);
-
-            $scope.currentFilter = $scope.filters[0];
-            $scope.tasksFiltered = $scope.tasks = response.tasks;
-        });
+    load();
 
     $scope.filterTasks = function (filter) {
 
@@ -69,7 +39,7 @@ function exchangeController ($scope, apiService, modalService) {
 
         task.error = false;
 
-        apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {
+        apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {}, {
             silent: true
         })
             .catch(function (err) {
@@ -85,11 +55,40 @@ function exchangeController ($scope, apiService, modalService) {
             });
     };
 
-    apiService.subscribe('club.cottonway.chat.on_task_updated', updateTask);
+    apiService.subscribe('club.cottonway.exchange.on_task_updated', load);
 
-    function updateTask (data) {
+    function load () {
 
-        _.extend(_.find($scope.tasks, {id: data[0].id}), data[0]);
-        $scope.filterTasks($scope.filters[0]);
+        apiService.call('club.cottonway.exchange.tasks')
+            .then(function (response) {
+
+                $scope.filters = _.reduce(response.tasks, function (memo, item) {
+
+                    _.each(item.categories, function (category) {
+
+                        if (!_.find(memo, {value: category})) {
+
+                            memo.push({
+                                title: category,
+                                value: category
+                            });
+                        }
+                    });
+
+                    return memo;
+                }, []);
+
+                $scope.filters = [{
+                    title: 'Все',
+                    value: {}
+                }, {
+                    title: 'Нерешенные',
+                    value: {isSolved: false}
+                }]
+                    .concat($scope.filters);
+
+                $scope.currentFilter = $scope.filters[0];
+                $scope.tasksFiltered = $scope.tasks = response.tasks;
+            });
     }
 }

@@ -10,6 +10,7 @@ var angular = require('angular'),
     apiConfig = require('./configs/api.json'),
     moment = require('moment'),
     cookie = require('cookie'),
+    _ = require('lodash'),
     dependencies,
     cookies,
     app;
@@ -54,7 +55,7 @@ app
 
         $urlRouterProvider.otherwise('/');
 
-        angular.forEach(routes.list, function (route) {
+        _.each(routes.list, function (route) {
             var options = route;
             $stateProvider.state(route.name, angular.extend({}, options));
         });
@@ -69,28 +70,34 @@ angular.bootstrap(document, ['app']);
 
 function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, apiService, errorService) {
 
-    var firstRun = true;
+    var firstRun = true,
+        menu = ['quest', 'exchange', 'chat', 'settings', 'rating'];
 
     $rootScope.App = App;
     $rootScope.$state = $state;
     $rootScope.isCollapsed = true;
+
+    $rootScope.menu = _.map(menu, function (item) {
+        return _.find(routes.list, {name: item})
+    });
+
     $wamp.open();
 
     $rootScope.$on('$stateChangeStart', function (e, toState, toParams, fromState, fromParams) {
 
         errorService.hide();
 
-        if (!dataService('api').user && toState.private || firstRun) {
+        if ((!dataService('api').user || firstRun) && toState.private) {
             e.preventDefault();
 
-            if (!angular.isUndefined($wamp.session)) {
+            if (getWampSession()) {
                 process();
             } else {
                 $rootScope.$on('$wamp.open', process);
             }
-
-            firstRun = false;
         }
+
+        firstRun = false;
     });
 
     $rootScope.$on('$stateChangeSuccess', function (e) {
@@ -112,11 +119,15 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
         $rootScope.user = dataService('api').user = user;
     };
 
-    $rootScope.setUser(false);
+    process();
 
     apiService.subscribe('club.cottonway.user.on_user_updated', $rootScope.setUser);
 
-    function process() {
+    function getWampSession () {
+        return $wamp.session || $wamp.connection._session;
+    }
+
+    function process () {
 
         $rootScope.setUser(false);
 

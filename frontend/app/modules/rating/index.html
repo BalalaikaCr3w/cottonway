@@ -1,4 +1,35 @@
 <div ng-controller="ratingController">
     <h1><i class="fa fa-list-ol"></i> Рейтинг</h1>
 
+    <table class="table table-hover ui-table">
+        <thead>
+            <tr>
+                <th class="m-rating__col-number">#</th>
+                <th>Логин</th>
+                <th class="m-rating__col-progress">Квест</th>
+                <th class="m-rating__col-points">Очки</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="player in players">
+                <td>
+                    <i class="fa fa-star m-rating__place_{{$index + 1}}" ng-if="$index < 3"></i>
+                    <span ng-if="$index >= 3">{{$index + 1}}</span>
+                </td>
+                <td>{{player.name}}</td>
+                <td>
+                    <progressbar class="ui-progress"
+                                 max="100"
+                                 value="player.progress"
+                                 ng-class="{
+                                    'progress-striped active ui-progress_success': player.progress < 100,
+                                    'ui-progress_warning': player.progress == 100
+                                 }">
+                        {{player.progress}}%
+                    </progressbar>
+                </td>
+                <td>{{player.score}}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
