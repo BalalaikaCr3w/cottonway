@@ -434,60 +434,6 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
-    @wamp.register(u'club.cottonway.exchange.update_task')
-    @inlineCallbacks
-    def updateTask(self, task, details):
-        try:
-            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session: returnValue(result(Error.notAuthenticated))
-
-            user = yield self.db.users.find_one({'_id': session['userId']})
-            if '_id' not in user: returnValue(result(Error.error))
-            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
-
-            fileds = ['title', 'shortDesc', 'desc', 'categories', 'price', 'flag', 'isOpen']
-            data = copyDict(task, fields)
-            taskId = ObjectId()
-
-            if 'id' in task:
-                t = yield self.db.tasks.find_one({'_id': ObjectId(task['id'])})
-                if '_id' not in t: returnValue(result(Error.error))
-
-                t.update(data)
-                yield self.db.tasks.update({'_id': t['_id']}, t)
-                taskId = t['_id']
-            else:
-                if not checkKeys(data, fields):
-                    returnValue(result(Error.error))
-                taskId = yield self.db.tasks.insert(data)
-
-            t = yield self.db.tasks.find({'_id': taskId})
-
-            sessions = yield self.db.sessions.find()
-
-            users = []
-            if t['isOpen']: users = yield self.db.users.find()
-            else: users = yield self.db.users.find({'isAdmin', True})
-            
-            solved = dict(zip(map(lambda u: u['_id'], users),
-                              map(lambda u: set(u['solvedTaskIds']), users)))
-
-            userSessionIds = {}
-            for s in sessions:
-                if s['userId'] not in userSessions: userSessionIds[s['userId']] = []
-                userSessionIds[s['userId']].append(s['wampSessionId'])
-                
-            for u in users:
-                if len(userSessions[u['_id']]) != 0:
-                    self.publish('club.cottonway.exchange.on_task_updated', returnTask(t, t['_id'] in solved[u['_id']]),
-                                 options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
-
-            returnValue(result(Error.ok))
-        except Exception as e:
-            traceback.print_exc()
-            traceback.print_stack()
-            returnValue(result(Error.error))
-
     @wamp.register(u'club.cottonway.quest.steps')
     @inlineCallbacks
     def steps(self, details):
@@ -584,12 +530,13 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
+    @inlineCallbacks
     def getUserSessionIds(self, users):
         sessions = yield self.db.sessions.find({'userId': {'$in': map(lambda u: u['_id'], users)}})
 
         userSessionIds = {}
         for session in sessions:
-            if session['userId'] not in userSessions: userSessions[session['userId']] = []
+            if session['userId'] not in userSessionIds: userSessionIds[session['userId']] = []
             userSessionIds[session['userId']].append(session['wampSessionId'])
 
         returnValue(userSessionIds)
@@ -656,6 +603,56 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
+    @wamp.register(u'club.cottonway.admin.update_task')
+    @inlineCallbacks
+    def updateTask(self, task, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            fields = ['title', 'shortDesc', 'desc', 'categories', 'price', 'flag', 'isOpen']
+            data = copyDict(task, fields)
+            taskId = ObjectId()
+
+            if 'id' in task:
+                taskId = ObjectId(task['id'])
+                yield self.db.tasks.update({'_id': ObjectId(taskId)}, {'$set': data})
+            else:
+                if not checkKeys(data, fields): returnValue(result(Error.error))
+                taskId = yield self.db.tasks.insert(data)
+
+            t = yield self.db.tasks.find_one({'_id': taskId})
+            if '_id' not in t: returnValue(result(Error.error))
+
+            if t['isOpen']:
+                users = yield self.db.users.find()
+                userSessionIds = yield self.getUserSessionIds(users)
+                solved = dict(zip(map(lambda u: u['_id'], users),
+                                  map(lambda u: set(u['solvedTaskIds']), users)))
+
+                for u in users:
+                    if len(userSessionIds[u['_id']]) != 0:
+                        self.publish('club.cottonway.exchange.on_task_updated', returnTask(t, t['_id'] in solved[u['_id']]),
+                                     options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
+
+            admins = yield self.db.users.find({'isAdmin': True})
+            adminSessionIds = yield self.getSessionIds(admins)
+
+            if len(adminSessionIds) != 0:
+                self.publish('club.cottonway.admin.on_task_updated', returnAdminTask(t),
+                             options=wamp.types.PublishOptions(eligible=adminSessionIds))
+            
+
+            returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
     @wamp.register(u'club.cottonway.admin.open_next_step')
     @inlineCallbacks
     def openNextStep(self, peerId, details):
@@ -689,6 +686,7 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
+    @inlineCallbacks
     def notifyStepUpdated(self, users):
         userSessionIds = yield self.getUserSessionIds(users)
 
@@ -699,3 +697,8 @@ class AppSession(ApplicationSession):
                                        map(lambda m: m['time'], stepMoments)))
                 self.publish('club.cottonway.quest.on_step_updated', returnStep(s, stepMoments[s['_id']]),
                              options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
+
+    @inlineCallbacks
+    def getSessionIds(self, users):
+        sessionIds = yield self.db.sessions.find({'userId': {'$in': map(lambda u: u['_id'], users)}})
+        returnValue(map(lambda s: s['wampSessionId'], sessionIds))
