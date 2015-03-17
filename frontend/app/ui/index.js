@@ -2,3 +2,4 @@
 
 require('./modal');
 require('./scroll');
+require('./captcha');

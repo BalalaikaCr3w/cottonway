@@ -39,6 +39,11 @@
             "title": "Рейтинг",
             "url": "/rating",
             "templateUrl": "app/modules/rating/index.html"
+        }, {
+            "name": "admin",
+            "title": "Панель администратора",
+            "url": "/admin",
+            "templateUrl": "app/modules/admin/index.html"
         }
     ]
 }

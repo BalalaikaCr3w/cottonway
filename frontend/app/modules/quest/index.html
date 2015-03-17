@@ -1,5 +1,5 @@
 <div ng-controller="questController">
-    <h1><i class="fa fa-question"></i> Квест</h1>
+    <h1><i class="fa fa-question"></i> {{$state.current.title}}</h1>
 
     <ul class="m-quest__items">
         <li class="m-quest__item" ng-repeat="item in messages">

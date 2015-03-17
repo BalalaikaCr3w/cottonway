@@ -8,6 +8,7 @@ var angular = require('angular'),
     filters = require('./core/filters'),
     routes = require('./configs/routes.json'),
     apiConfig = require('./configs/api.json'),
+    $script = require('scriptjs'),
     moment = require('moment'),
     cookie = require('cookie'),
     _ = require('lodash'),
@@ -66,7 +67,10 @@ app
 
 require('./../templates.js');
 
-angular.bootstrap(document, ['app']);
+$script.get('https://www.google.com/recaptcha/api.js?onload=onCaptchaLoad&render=explicit', _.noop);
+window.onCaptchaLoad = function () {
+    angular.bootstrap(document, ['app']);
+};
 
 function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, apiService, errorService) {
 

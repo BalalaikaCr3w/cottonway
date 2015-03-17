@@ -40,6 +40,7 @@
                             <span class="ui-badge ui-badge_success">{{user.score}}</span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
+                            <li><a ui-sref="admin" ng-if="user.isAdmin">Панель администратора</a></li>
                             <li><a ng-click="logout()">Выход</a></li>
                         </ul>
                     </li>
@@ -51,7 +52,7 @@
 
     <alert type="{{alert.type}}"
            close="closeAlert()"
-           ng-if="alert">{{alert.msg}}</alert>
+           ng-if="alert">{{alert.callStatus}}: {{alert.errorMessage}}</alert>
 
     <div class="container" ui-view></div>
 
@@ -64,7 +65,7 @@
     <script src="index.js"></script>
     
     <object type="application/x-rutoken-pki" width="0" height="0">
-	<param name="onload" value="onPluginLoaded"/>
+	    <param name="onload" value="onPluginLoaded"/>
     </object>
 </body>
 </html>

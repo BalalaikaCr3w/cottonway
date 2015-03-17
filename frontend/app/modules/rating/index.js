@@ -1,8 +1,14 @@
-var controllers = require('../../core/controllers');
+var controllers = require('../../core/controllers'),
+    _ = require('lodash');
 
-controllers.controller('ratingController', ['$scope', 'apiService', ratingController]);
+controllers.controller('ratingController', ['$scope', 'apiService', 'dataService', ratingController]);
 
-function ratingController ($scope, apiService) {
+function ratingController ($scope, apiService, dataService) {
+
+    $scope.$watch(function () {
+
+        return dataService('api').user;
+    }, update);
 
     load();
 
@@ -14,6 +20,11 @@ function ratingController ($scope, apiService) {
             .then(function (response) {
 
                 $scope.players = response.rating;
+                update(dataService('api').user);
             });
+    }
+
+    function update (user) {
+        $scope.place = _.findIndex($scope.players, {id: user.id}) + 1;
     }
 }
