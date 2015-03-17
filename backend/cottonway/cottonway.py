@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from autobahn import wamp
@@ -20,6 +22,8 @@ from enum import IntEnum
 
 import string
 
+from operator import itemgetter
+
 
 class Error(IntEnum):
     ok = 0
@@ -33,6 +37,19 @@ class Error(IntEnum):
     roomAlreadyExists = 8
     wrongFlag = 9
     alreadySolved = 10
+
+errorMessages = {
+    Error.error: u'Ошибка',
+    Error.wrongEmail: u'Некорректный email',
+    Error.wrongName: u'Некорректное имя пользователя',
+    Error.wrongPassword: u'Некорректный пароль',
+    Error.wrongCredentials: u'Неверные параметры авторизации',
+    Error.notAuthenticated: u'Не аутентифицирован',
+    Error.wrongParameters: u'Неправильные параметры',
+    Error.roomAlreadyExists: u'Комната уже существует',
+    Error.wrongFlag: u'Неверный флаг',
+    Error.alreadySolved: u'Уже решено'
+}
 
 
 allowedName = set(unicode(string.letters + string.ascii_uppercase + string.digits + '_'))
@@ -51,8 +68,11 @@ def copyDict(src, keys):
     return r
 
 def result(*args, **kwargs):
-    if len(args) != 0: kwargs['callStatus'] = int(args[0])
-    else: kwargs['callStatus'] = int(Error.ok)
+    if len(args) != 0:
+        kwargs['callStatus'] = int(args[0])
+        kwargs['errorMessage'] = errorMessages[args[0]]
+    else:
+        kwargs['callStatus'] = int(Error.ok)
         
     return kwargs
 
@@ -583,10 +603,10 @@ class AppSession(ApplicationSession):
             users = yield self.db.users.find()
             stepsCount = yield self.db.steps.count()
 
-            rating = map(lambda u: getUserRating(u, stepsCount), users)
-            rating = sorted(rating, key=attrgetter('lastStepTime'))
-            rating = sorted(rating, key=attrgetter('score'))
-            rating = sorted(rating, key=attrgetter('progress'))
+            rating = map(lambda u: self.getUserRating(u, stepsCount), users)
+            rating = sorted(rating, key=itemgetter('lastStepTime'))
+            rating = sorted(rating, key=itemgetter('score'), reverse=True)
+            rating = sorted(rating, key=itemgetter('progress'), reverse=True)
 
             returnValue(result(rating=rating))
         except Exception as e:
@@ -595,12 +615,12 @@ class AppSession(ApplicationSession):
             returnValue(result(Error.error))
 
     def getUserRating(self, user, stepsCount):
-        r = {'id': user['_id'],
+        r = {'id': str(user['_id']),
              'progress': 100 * len(user['stepMoments']) / stepsCount,
-             'lastStepTime': max(user['stepMoments'], key=attrgetter('time'))}
+             'lastStepTime': max(user['stepMoments'], key=itemgetter('time'))['time'].isoformat()}
         r.update(copyDict(user, ['name', 'score']))
         return r
 
     def notifyRatingUpdated(self, user):
         stepsCount = yield self.db.steps.count()
-        self.publish('club.cottonway.common.on_rating_updated', getUserRating(user, steps))
+        self.publish('club.cottonway.common.on_rating_updated', self.getUserRating(user, stepsCount))
