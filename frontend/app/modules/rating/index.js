@@ -4,9 +4,16 @@ controllers.controller('ratingController', ['$scope', 'apiService', ratingContro
 
 function ratingController ($scope, apiService) {
 
-    apiService.call('club.cottonway.common.rating')
-        .then(function (response) {
+    load();
 
-            $scope.players = response.rating;
-        });
+    apiService.subscribe('club.cottonway.common.on_rating_updated', load);
+
+    function load () {
+
+        apiService.call('club.cottonway.common.rating')
+            .then(function (response) {
+
+                $scope.players = response.rating;
+            });
+    }
 }
