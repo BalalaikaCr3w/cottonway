@@ -119,7 +119,7 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
         $rootScope.user = dataService('api').user = user;
     };
 
-    $rootScope.setUser(false);
+    process();
 
     apiService.subscribe('club.cottonway.user.on_user_updated', $rootScope.setUser);
 
@@ -127,7 +127,7 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
         return $wamp.session || $wamp.connection._session;
     }
 
-    function process() {
+    function process () {
 
         $rootScope.setUser(false);
 
