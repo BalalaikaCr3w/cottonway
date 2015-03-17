@@ -32,10 +32,12 @@ directives.directive('uiCaptcha', ['$window', function ($window) {
 
                 callback: function (value) {
                     scope.captcha = value;
+                    scope.$apply();
                 },
 
                 'expired-callback': function () {
                     scope.captcha = false;
+                    scope.$apply();
                 }
             });
         }

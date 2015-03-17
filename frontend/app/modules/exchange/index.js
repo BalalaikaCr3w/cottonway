@@ -35,22 +35,23 @@ function exchangeController ($scope, apiService, modalService) {
         });
     };
 
-    $scope.sendFlag = function (task, flag) {
+    $scope.sendFlag = function (task, flag, captcha) {
 
         task.error = false;
 
-        apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {}, {
+        flag && captcha && apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {
+            recaptcha: captcha
+        }, {
             silent: true
         })
             .catch(function (err) {
 
-                var errors = {
-                    9: 'Неверный флаг!',
-                    def: 'Ошибка'
+                var def = {
+                    errorMessage: 'Произошла ошибка'
                 };
 
-                if (err.callStatus !== 0) {
-                    task.error = errors[err.callStatus] || errors.def;
+                if (!err || err.callStatus !== 0) {
+                    task.error = _.extend({}, def, err);
                 }
             });
     };
