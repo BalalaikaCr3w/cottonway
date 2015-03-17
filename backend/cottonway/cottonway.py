@@ -213,7 +213,7 @@ class AppSession(ApplicationSession):
 
     @wamp.register(u'club.cottonway.auth.sign_in')
     @inlineCallbacks
-    def signIn(self, email, password, details):
+    def signIn(self, email, password, details, **kwargs):
         try:
             user = yield self.db.users.find_one({'email': email})
             if '_id' not in user: returnValue(result(Error.error))
