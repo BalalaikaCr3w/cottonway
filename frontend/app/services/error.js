@@ -1,17 +1,17 @@
-var services = require('../core/services');
+var services = require('../core/services'),
+    _ = require('lodash');
 
 services.factory('errorService', ['$rootScope', function ($rootScope) {
 
-    var errors = {
-            1: {
-                msg: 'Произошла ошибка',
-                type: 'danger'
-            }
+    var def = {
+            errorMessage: 'Произошла ошибка',
+            type: 'danger'
         },
         methods = {
 
             show: function (err) {
-                $rootScope.alert = errors[(err || {}).callStatus] || errors[1];
+
+                $rootScope.alert = _.extend({}, def, err);
             },
 
             hide: function () {
