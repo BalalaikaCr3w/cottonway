@@ -1,0 +1,90 @@
+<div>
+    <p>Таск!!!</p>
+
+    <form>
+        <div class="input-group">
+        <span>Имя</span>
+        <input  class="form-control" type="text" ng-model="modalData.title">
+    </div>
+    <div class="input-group">
+        <span>Короткое описание</span>
+        <input  class="form-control" type="text" ng-model="modalData.shortDesc">
+    </div>
+     <div class="input-group">
+        <span>описание</span>
+        <input  class="form-control" type="text" ng-model="modalData.desc">
+    </div>
+       <div class="input-group">
+        <span>категории</span>
+        <input  class="form-control" type="text" ng-model="modalData.categories">
+    </div>
+       <div class="input-group">
+        <span>флаг</span>
+        <input  class="form-control" type="text" ng-model="modalData.flag">
+    </div>
+
+        <div class="input-group">
+        <span>цена</span>
+        <input  class="form-control" type="number" ng-model="modalData.price">
+    </div>
+       <div class="input-group">
+        <span>открыт</span>
+        <input  type="checkbox" ng-model="modalData.isOpen">
+    </div>
+
+        </div>
+       <div class="input-group-btn">
+       <button class="btn btn-default"
+                        type="button"
+                        ng-click="save(modalData)">
+                    Сохранить
+                </button>
+    </div>
+    </form>
+   <!--  <p>
+        Очки:
+        <span class="label label-success m-exchange__category">{{modalData.price}}</span>
+    </p>
+
+    <p>
+        Категории:
+        <span class="label label-default m-exchange__category"
+              ng-repeat="category in modalData.categories">
+            {{category}}
+        </span>
+    </p>
+
+    <form ng-if="!modalData.isSolved"
+          ng-submit="sendFlag(modalData, flag)">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control"
+                   ng-model="flag">
+
+            <span class="input-group-btn">
+                <button class="btn btn-default"
+                        type="button"
+                        ng-click="sendFlag(modalData, flag, captcha)"
+                        ng-disabled="!flag || !captcha">
+                    Отправить
+                </button>
+            </span>
+        </div>
+
+        <div class="form-group m-exchange__captcha" ui-captcha="captcha"></div>
+    </form>
+
+    <p></p>
+
+    <p>
+        <alert type="success"
+               ng-if="modalData.isSolved">
+            <i class="fa fa-check"></i> Задание решено!
+        </alert>
+
+        <alert type="danger"
+               ng-if="modalData.error.errorMessage">
+            <i class="fa fa-times"></i> {{modalData.error.errorMessage}}
+        </alert>
+    </p> -->
+</div>
