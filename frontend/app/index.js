@@ -123,6 +123,8 @@ function run ($rootScope, $wamp, $state, $cookies, $location, $timeout, App, dat
 
     apiService.subscribe('club.cottonway.user.on_user_updated', $rootScope.setUser);
 
+    $cookies.backend_auth_data && process();
+
     $timeout(function () {
         $rootScope.$on('$wamp.open', process);
     }, 1000);
