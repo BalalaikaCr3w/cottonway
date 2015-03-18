@@ -76,7 +76,7 @@ angular.bootstrap(document, ['app']);
 function run ($rootScope, $wamp, $state, $cookies, $location, $timeout, App, dataService, apiService, errorService) {
 
     var firstRun = true,
-        menu = ['quest', 'exchange', 'chat', 'rating'];
+        menu = ['quest', 'exchange', 'chat', 'settings', 'rating'];
 
     $rootScope.App = App;
     $rootScope.$state = $state;

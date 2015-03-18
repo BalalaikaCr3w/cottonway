@@ -24,6 +24,12 @@
             "templateUrl": "app/modules/chat/index.html",
             "private": true
         }, {
+            "name": "settings",
+            "title": "Настройки",
+            "url": "/settings",
+            "templateUrl": "app/modules/settings/index.html",
+            "private": true
+        }, {
             "name": "sign-in",
             "title": "Вход в клуб",
             "url": "/sign-in",
