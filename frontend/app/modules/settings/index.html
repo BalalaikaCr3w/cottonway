@@ -43,13 +43,13 @@
                    placeholder="PIN"
                    maxlength="10"
                    required
-                   ng-model="pin">
+                   ng-model="pin.pin">
         </div>
 
         <div class="form-group">
             <button type="submit"
                     class="btn btn-lg btn-block"
-                    ng-disabled="!pin"
+                    ng-disabled="!pin.pin"
                     ng-click="login()">
                 Войти
             </button>
