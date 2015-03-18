@@ -18,7 +18,11 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" ui-sref="quest">Cotton Way</a>
+                <a class="navbar-brand"
+                   ng-class="{
+                       'navbar-brand_active': $state.current.name == 'main'
+                   }"
+                   ui-sref="main">Cotton Way</a>
             </div>
             <div class="collapse navbar-collapse"
                  collapse="isCollapsed">
