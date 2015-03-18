@@ -96,8 +96,6 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
 
             if (getWampSession()) {
                 process();
-            } else {
-                $rootScope.$on('$wamp.open', process);
             }
         }
 
@@ -126,6 +124,8 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
     process();
 
     apiService.subscribe('club.cottonway.user.on_user_updated', $rootScope.setUser);
+
+    $rootScope.$on('$wamp.open', process);
 
     function getWampSession () {
         return $wamp.session || $wamp.connection._session;

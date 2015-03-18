@@ -192,7 +192,6 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         apiService.call('club.cottonway.admin.steps')
             .then(function (response) {
                 $scope.steps = _.sortBy(response.steps, 'seq');
-                console.log($scope.steps);
             });
     }
 }
