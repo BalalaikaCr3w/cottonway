@@ -21,6 +21,27 @@
                         class="btn btn-default"
                         ng-disabled="!quest.peer.id">Открыть</button>
             </form>
+
+            <br/>
+
+            <div class="m-admin__steps">
+                <div class="m-admin__step"
+                     ng-repeat="step in steps"
+                     ng-click="openStep(step)">
+                    <span class="m-admin__step-item">
+                        {{step.seq}}
+                    </span>
+                    <span class="m-admin__step-separator" ng-if="!$last">&gt;</span>
+                </div>
+            </div>
+
+            <br/>
+
+            <button class="btn btn-default"
+                    type="button"
+                    ng-click="openStep({})">
+                Добавить
+            </button>
         </tab>
 
         <tab heading="Биржа">
