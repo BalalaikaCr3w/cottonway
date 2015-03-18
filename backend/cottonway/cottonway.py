@@ -398,7 +398,7 @@ class AppSession(ApplicationSession):
 
     @wamp.register(u'club.cottonway.exchange.send_flag')
     @inlineCallbacks
-    def sendFlag(self, taskId, flag, details):
+    def sendFlag(self, taskId, flag, details, **kwargs):
         try:
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
             if '_id' not in session: returnValue(result(Error.notAuthenticated))
