@@ -187,7 +187,7 @@ class AppSession(ApplicationSession):
 
     @wamp.register(u'club.cottonway.auth.sign_up')
     @inlineCallbacks
-    def signUp(self, email, name, password, details):
+    def signUp(self, email, name, password, details, **kwargs):
         try:
             if type(email) is not unicode or len(email) == 0 or '@' not in email:
                 returnValue(result(Error.wrongEmail))
@@ -199,21 +199,16 @@ class AppSession(ApplicationSession):
             if type(password) is not unicode or len(password) == 0:
                 returnValue(result(Error.wrongPassword))
 
-            # TODO: set only first step, it's here for debug now
             steps = yield self.db.steps.find(filter=qf.sort(qf.ASCENDING('seq')))
-            stepMoments = []
-            now = datetime.utcnow()
-            for step in steps:
-                if not step['isActive']: break
-                stepMoments.append({'stepId': step['_id'], 'time': now})
-                now += timedelta(hours=1)
+            stepMoments = [{'stepId': steps[0]['_id'], 'time': datetime.utcnow()}]
 
             user = yield self.db.users.find_one({'$or': [{'name': name}, {'email': email}]})
             if '_id' in user: returnValue(result(Error.error))
 
             userId = yield self.db.users.insert({'email': email, 'name': name, 'password': password,
                                                  'isAdmin': False, 'version': 0, 'score': 0,
-                                                 'solvedTaskIds': [], 'stepMoments': stepMoments})
+                                                 'solvedTaskIds': [], 'stepMoments': stepMoments,
+                                                 'taskMoments': []})
             user = yield self.db.users.find_one({'_id': userId})
 
             room = yield self.db.rooms.find_one({'main': True})
@@ -422,6 +417,7 @@ class AppSession(ApplicationSession):
                 user['version'] += 1
                 user['solvedTaskIds'].append(task['_id'])
                 user['score'] += task['price']
+                user['taskMoments'].append({'taskId': task['_id'], 'time': datetime.utcnow()})
 
                 res = yield self.db.users.update({'_id': user['_id'], 'version': version}, user)
                 if res['updatedExisting']: break
