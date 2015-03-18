@@ -80,6 +80,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
             }
         }
 
+        if (_.isString(data.seq)) {
+            data.seq = parseInt(data.seq);
+        }
+
         apiService.call("club.cottonway.admin.update_step", [data], {}, {
             silent: true
         })
@@ -149,6 +153,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
             }
         }
 
+        if (_.isString(data.price)) {
+            data.price = parseInt(data.price);
+        }
+
         apiService.call("club.cottonway.admin.update_task", [data], {}, {
             silent: true
         })
@@ -192,7 +200,6 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         apiService.call('club.cottonway.admin.steps')
             .then(function (response) {
                 $scope.steps = _.sortBy(response.steps, 'seq');
-                console.log($scope.steps);
             });
     }
 }
