@@ -11,7 +11,8 @@ function tokenService ($q, $interval, pluginService) {
         isAvailable: false,
         isLoggedIn: false,
         certs: [],
-        login: login
+        login: login,
+        signMessage:signMessage
     };
 
     pluginService.onLoaded(function () {
@@ -19,6 +20,20 @@ function tokenService ($q, $interval, pluginService) {
         $interval(enumerate, 5000);
         enumerate();
     });
+    
+
+    // {
+    //             addUserCertificate:true,
+    //             useHardwareHash:true,
+    //         }
+
+    function signMessage(sertId,text) {
+       
+       return pluginService.sign(parseInt(token.deviceId),sertId,text,false,{addUserCertificate:true,useHardwareHash:true})
+        
+      
+        
+    }
 
     function enumerate() {
 

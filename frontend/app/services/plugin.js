@@ -43,13 +43,17 @@ function pluginService ($rootScope, $q, errorService) {
         errors[plugin.errorCodes.ASN1_ERROR] = 'Ошибка декодирования ASN1 структуры';
         errors[plugin.errorCodes.WRONG_KEY_TYPE] = 'Неправильный тип ключа';
 
-        _.each(plugin, function (value, key) {
+        _.each(plugin, function (value , key) {
 
             if (_.isNumber(value)) {
                 wrapper[key] = value;
                 return;
-            } else if (!_.isFunction(value)) {
-                return;
+            // } else if (!_.isFunction(value)) {
+            //     return;
+            // }
+
+            } else if(typeof value != 'object'){
+                return
             }
 
             wrapper[key] = function () {
@@ -57,7 +61,7 @@ function pluginService ($rootScope, $q, errorService) {
                 var defer = $q.defer(),
                     args = [].slice.call(arguments).concat(resultCallback, errorCallback);
 
-                plugin[f].apply(plugin, args);
+                plugin[key].apply(plugin, args);
 
                 return defer.promise;
 
@@ -67,7 +71,7 @@ function pluginService ($rootScope, $q, errorService) {
                 }
 
                 function errorCallback (code, text) {
-                    errorService.custom(errors[code]);
+                    errorService.show(errors[code]);
                     defer.reject(code);
                     $rootScope.$apply();
                 }
