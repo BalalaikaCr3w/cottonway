@@ -692,7 +692,7 @@ class AppSession(ApplicationSession):
         userSessionIds = yield self.getUserSessionIds(users)
 
         for u in users:
-            if len(userSessionIds[u['_id']]) != 0:
+            if u['_id'] in userSessionIds:
                 stepMoments = u['stepMoments']
                 stepMoments = dict(zip(map(lambda m: m['stepId'], stepMoments),
                                        map(lambda m: m['time'], stepMoments)))
