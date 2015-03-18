@@ -15,8 +15,6 @@ function questController ($scope, apiService) {
         apiService.call('club.cottonway.quest.steps')
             .then(function (response) {
 
-                console.log(response);
-
                 $scope.messages = _.chain(response.steps)
                     .sortBy(function (item) {
                         return -(new Date(item.time)).getTime()
