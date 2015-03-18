@@ -156,7 +156,12 @@ function run ($rootScope, $wamp, $state, $cookies, $location, $timeout, App, dat
                         state = $state.get($location.url().slice(1));
                         $state.go(state ? state.name : 'quest');
                     }
-            });
+                })
+                .catch(function () {
+
+                    delete $cookies.backend_auth_data;
+                    $state.go('sign-in');
+                });
         }
     }
 }
