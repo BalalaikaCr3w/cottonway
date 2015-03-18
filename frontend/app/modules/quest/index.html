@@ -8,7 +8,35 @@
                     'fa-check': $index
                 }"></span>
             <span class="m-quest__item-time">{{item.timeFormatted}}</span>
+
             <p>{{item.desc}}</p>
+
+            <form ng-submit="action(item)"
+                  ng-if="item.needInput && item.hasAction">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           maxlength="20"
+                           ng-model="item.flag"
+                           ng-disabled="$index">
+
+                    <span class="input-group-btn">
+                        <button class="btn btn-default"
+                                type="submit"
+                                ng-disabled="!item.flag || $index">
+                            Отправить
+                        </button>
+                    </span>
+                </div>
+            </form>
+
+            <button class="btn btn-default"
+                    type="button"
+                    ng-disabled="$index"
+                    ng-click="action(item)"
+                    ng-if="!item.needInput && item.hasAction">
+                Отправить
+            </button>
         </li>
     </ul>
 </div>

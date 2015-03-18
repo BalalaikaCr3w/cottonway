@@ -10,6 +10,17 @@ function questController ($scope, apiService) {
 
     apiService.subscribe('club.cottonway.quest.on_step_updated', load);
 
+    $scope.action = function (step) {
+
+        var arr = [step.id];
+
+        if (step.flag) {
+            arr.push(step.flag);
+        }
+
+        apiService.call('club.cottonway.quest.action', arr);
+    };
+
     function load () {
 
         apiService.call('club.cottonway.quest.steps')
