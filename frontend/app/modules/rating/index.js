@@ -19,7 +19,11 @@ function ratingController ($scope, apiService, dataService) {
         apiService.call('club.cottonway.common.rating')
             .then(function (response) {
 
-                $scope.players = response.rating;
+                $scope.players = _.map(response.rating, function (item) {
+                    return _.extend({
+                        progressRounded: Math.round(item.progress)
+                    }, item);
+                });
                 update(dataService('api').user);
             });
     }

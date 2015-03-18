@@ -35,7 +35,7 @@
                     ng-disabled="$index"
                     ng-click="action(item)"
                     ng-if="!item.needInput && item.hasAction">
-                Отправить
+                {{item.actionName}}
             </button>
         </li>
     </ul>
