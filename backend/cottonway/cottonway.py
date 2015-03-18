@@ -116,7 +116,7 @@ def returnAdminTask(task):
 
 def returnBasicStep(step):
     r = {'id': str(step['_id'])}
-    r.update(copyDict(step, ['desc', 'seq', 'hasAction', 'needInput']))
+    r.update(copyDict(step, ['desc', 'seq', 'hasAction', 'needInput', 'actionName']))
     return r
 
 def returnStep(step, time):
@@ -625,7 +625,7 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
 
-            fields = ['desc', 'seq', 'isActive', 'hasAction', 'needInput', 'flag']
+            fields = ['desc', 'seq', 'isActive', 'hasAction', 'needInput', 'flag', 'actionName']
             data = copyDict(step, fields)
             stepId = None
 
