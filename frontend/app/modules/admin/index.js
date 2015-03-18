@@ -14,6 +14,7 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         loadSteps();
         loadPeers();
         loadTasks();
+        loadUsers();
     }, 1000);
 
     $scope.openStepToPeer = function () {
