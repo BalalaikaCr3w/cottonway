@@ -63,7 +63,7 @@ app
 
         $wampProvider.init(cookies.developer ? apiConfig.dev : apiConfig.prod);
     }])
-    .run(['$rootScope', '$wamp', '$state', '$cookies', '$location', 'App', 'dataService', 'apiService', 'errorService', run]);
+    .run(['$rootScope', '$wamp', '$state', '$cookies', '$location', '$timeout', 'App', 'dataService', 'apiService', 'errorService', run]);
 
 require('./../templates.js');
 
@@ -72,7 +72,7 @@ window.onCaptchaLoad = function () {
     angular.bootstrap(document, ['app']);
 };
 
-function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, apiService, errorService) {
+function run ($rootScope, $wamp, $state, $cookies, $location, $timeout, App, dataService, apiService, errorService) {
 
     var firstRun = true,
         menu = ['quest', 'exchange', 'chat', 'settings', 'rating'];
@@ -121,11 +121,11 @@ function run ($rootScope, $wamp, $state, $cookies, $location, App, dataService, 
         $rootScope.user = dataService('api').user = user;
     };
 
-    process();
-
     apiService.subscribe('club.cottonway.user.on_user_updated', $rootScope.setUser);
 
-    $rootScope.$on('$wamp.open', process);
+    $timeout(function () {
+        $rootScope.$on('$wamp.open', process);
+    }, 1000);
 
     function getWampSession () {
         return $wamp.session || $wamp.connection._session;
