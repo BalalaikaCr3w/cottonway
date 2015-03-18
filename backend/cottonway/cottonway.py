@@ -678,8 +678,10 @@ class AppSession(ApplicationSession):
                                        {'$push': {'stepMoments': {'stepId': nextStep['_id'],
                                                                   'time': datetime.utcnow()}}})
 
-            yield self.notifyStepUpdated(nextStep, [user])
-            yield self.notifyRatingUpdated(user)
+            peer = yield self.db.users.find_one({'_id': ObjectId(peerId)})
+
+            yield self.notifyStepUpdated(nextStep, [peer])
+            yield self.notifyRatingUpdated(peer)
 
             returnValue(result(Error.ok))
         except Exception as e:
