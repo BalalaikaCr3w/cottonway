@@ -2,11 +2,11 @@
     <h1><i class="fa fa-cogs"></i> Настройки</h1>
 
     <br/>
-<!--
-    <p>Для подписи подходят только браузеры Internet Explorer и Firefox!</p>
+
+    <alert><i class="fa fa-warning"></i> Для подписи подходят только браузеры Internet Explorer и Firefox!</alert>
 
     <p ng-if="!isPluginLoaded()">
-        Для&nbsp;использования смарт-карты из&nbsp;браузера установите Рутокен Плагин<br/>
+        Для&nbsp;использования смарт-карты из&nbsp;браузера установите Рутокен Плагин.<br/>
         [ <a href="http://www.rutoken.ru/support/download/rutoken-plugin/"
              class="ui-link"
              target="_blank">
@@ -15,7 +15,7 @@
     </p>
 
     <p ng-if="isPluginLoaded() && !token.isAvailable">
-        Для&nbsp;подписи сообщений подключите смарт-карту
+        Для&nbsp;подписи сообщений подключите смарт-карту.
     </p>
 
     <form class="ui-form" ng-if="token.isAvailable && token.isLoggedIn">
@@ -55,5 +55,5 @@
             </button>
         </div>
     </form>
--->
+
 </div>
