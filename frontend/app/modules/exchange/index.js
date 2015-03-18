@@ -39,8 +39,8 @@ function exchangeController ($scope, apiService, modalService) {
 
         task.error = false;
 
-        flag && captcha && apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {
-            recaptcha: captcha
+        flag && /*captcha &&*/ apiService.call('club.cottonway.exchange.send_flag', [task.id, flag], {
+            /*recaptcha: captcha*/
         }, {
             silent: true
         })

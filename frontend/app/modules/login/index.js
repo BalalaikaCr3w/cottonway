@@ -12,23 +12,23 @@ function loginController ($scope, $state, $cookies, apiService) {
 
     $scope.signIn = function () {
 
-        $scope.form.captcha && apiService.call('club.cottonway.auth.sign_in', [
+        /*$scope.form.captcha &&*/ apiService.call('club.cottonway.auth.sign_in', [
             $scope.form.email,
             $scope.form.password
         ], {
-            recaptcha: $scope.form.captcha
+            /*recaptcha: $scope.form.captcha*/
         })
             .then(success);
     };
 
     $scope.signUp = function () {
 
-        $scope.form.captcha && apiService.call('club.cottonway.auth.sign_up', [
+        /*$scope.form.captcha &&*/ apiService.call('club.cottonway.auth.sign_up', [
             $scope.form.email,
             $scope.form.name,
             $scope.form.password
         ], {
-            recaptcha: $scope.form.captcha
+            /*recaptcha: $scope.form.captcha*/
         })
             .then(success);
     };

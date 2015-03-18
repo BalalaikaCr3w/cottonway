@@ -22,16 +22,20 @@
                    ng-model="flag">
 
             <span class="input-group-btn">
-                <button class="btn btn-default"
+                <!--<button class="btn btn-default"
                         type="button"
                         ng-click="sendFlag(modalData, flag, captcha)"
-                        ng-disabled="!flag || !captcha">
+                        ng-disabled="!flag || !captcha">-->
+		<button class="btn btn-default"
+                        type="button"
+                        ng-click="sendFlag(modalData, flag, undefined)"
+                        ng-disabled="!flag">
                     Отправить
                 </button>
             </span>
         </div>
 
-        <div class="form-group m-exchange__captcha" ui-captcha="captcha"></div>
+        <!--<div class="form-group m-exchange__captcha" ui-captcha="captcha"></div>-->
     </form>
 
     <p></p>

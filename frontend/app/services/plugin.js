@@ -52,7 +52,7 @@ function pluginService ($rootScope, $q, errorService) {
             //     return;
             // }
 
-            } else if(typeof value != 'object'){
+            } else if(typeof value != 'object' && typeof value != 'function'){
                 return
             }
 
