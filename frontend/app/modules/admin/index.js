@@ -70,6 +70,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
             delete data.flag;
         }
 
+        if (!data.hasAction) {
+            delete data.actionName;
+        }
+
         if (!_.isEmpty(data)) {
             if ($scope.questStep.id) {
                 data.id = $scope.questStep.id;
