@@ -81,6 +81,8 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
                 data.hasAction = !!data.hasAction;
                 data.isActive = !!data.isActive;
                 data.needInput = !!data.needInput;
+                data.actionName = '';
+                data.flag = '';
             }
         }
 
@@ -210,6 +212,14 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         apiService.call('club.cottonway.admin.steps')
             .then(function (response) {
                 $scope.steps = _.sortBy(response.steps, 'seq');
+            });
+    }
+
+    function loadUsers () {
+
+        apiService.call('club.cottonway.admin.users')
+            .then(function (response) {
+                console.log(response);
             });
     }
 }
