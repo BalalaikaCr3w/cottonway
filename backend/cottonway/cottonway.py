@@ -99,6 +99,12 @@ def returnUser(user):
     r.update(copyDict(user, ['email', 'isAdmin', 'score']))
     return r
 
+def returnAdminUser(user):
+    r = returnUser(user)
+    r['stepMoments'] = map(lambda m: {'stepId': str(m['stepId']), 'time': m['time'].isoformat()}, user['stepMoments'])
+    r['solvedTaskIds'] = map(lambda i: str(i), user['solvedTaskIds'])
+    return r
+
 def returnBasicTask(task):
     r = {'id': str(task['_id'])}
     r.update(copyDict(task, ['title', 'shortDesc', 'desc', 'categories', 'price']))
@@ -525,6 +531,27 @@ class AppSession(ApplicationSession):
     def notifyRatingUpdated(self, user):
         stepsCount = yield self.db.steps.count()
         self.publish('club.cottonway.common.on_rating_updated', self.getUserRating(user, stepsCount))
+
+    @wamp.register(u'club.cottonway.admin.users')
+    @inlineCallbacks
+    def adminUsers(self, userIds=None, details=None):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            query = {}
+            if userIds is not None: query = {'_id': {'$in': map(lambda i: ObjectId(i), userIds)}}
+
+            users = yield self.db.users.find(query)
+            returnValue(result(peers=map(lambda u: returnAdminUser(u), users)))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))    
 
     @wamp.register(u'club.cottonway.admin.tasks')
     @inlineCallbacks
