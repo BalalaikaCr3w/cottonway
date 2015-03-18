@@ -472,45 +472,6 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
-    @wamp.register(u'club.cottonway.quest.update_step')
-    @inlineCallbacks
-    def updateStep(self, step, details):
-        try:
-            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
-            if '_id' not in session: returnValue(result(Error.notAuthenticated))
-
-            user = yield self.db.users.find_one({'_id': session['userId']})
-            if '_id' not in user: returnValue(result(Error.error))
-            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
-
-            fields = ['desc', 'seq', 'isActive']
-            stepId = None
-            if 'id' in step:
-                yield self.db.steps.update({'_id': step['id']}, step)
-                stepId = s['_id']
-            else:
-                if not checkKeys(step, fields): returnValue(result(Error.error))
-                stepId = yield self.db.steps.insert(data)
-
-            s = yield self.db.steps.find({'_id': stepId})
-
-            users = yield self.db.users.find({'stepMoments.stepId': stepId})
-            yield notifyStepUpdated(users)
-
-            admins = yield self.db.users.find({'isAdmin': True})
-            adminSessionIds = yield self.getUserSessionIds(users)
-
-            for a in admins:
-                if len(adminSessionIds[u['_id']]) != 0:
-                    self.publish('club.cottonway.exchange.on_admin_step_updated', returnAdminStep(s),
-                                 options=wamp.types.PublishOptions(eligible=adminSessionIds[a['_id']]))
-
-            returnValue(result(Error.ok))
-        except Exception as e:
-            traceback.print_exc()
-            traceback.print_stack()
-            returnValue(result(Error.error))
-
     @inlineCallbacks
     def getUserSessionIds(self, users):
         sessions = yield self.db.sessions.find({'userId': {'$in': map(lambda u: u['_id'], users)}})
@@ -653,6 +614,46 @@ class AppSession(ApplicationSession):
             traceback.print_stack()
             returnValue(result(Error.error))
 
+    @wamp.register(u'club.cottonway.admin.update_step')
+    @inlineCallbacks
+    def updateStep(self, step, details):
+        try:
+            session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
+            if '_id' not in session: returnValue(result(Error.notAuthenticated))
+
+            user = yield self.db.users.find_one({'_id': session['userId']})
+            if '_id' not in user: returnValue(result(Error.error))
+            if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
+
+            fields = ['desc', 'seq', 'isActive', 'hasAction', 'needInput']
+            data = copyDict(step, fields)
+            stepId = None
+
+            if 'id' in step:
+                stepId = ObjectId(step['id'])
+                yield self.db.steps.update({'_id': stepId}, {'$set': data})
+            else:
+                if not checkKeys(step, fields): returnValue(result(Error.error))
+                stepId = yield self.db.steps.insert(data)
+
+            s = yield self.db.steps.find_one({'_id': stepId})
+
+            users = yield self.db.users.find({'stepMoments.stepId': stepId})
+            yield self.notifyStepUpdated(s, users)
+
+            admins = yield self.db.users.find({'isAdmin': True})
+            adminSessionIds = yield self.getSessionIds(admins)
+
+            if len(adminSessionIds) != 0:
+                self.publish('club.cottonway.admin.on_step_updated', returnAdminStep(s),
+                    options=wamp.types.PublishOptions(eligible=adminSessionIds))
+
+            returnValue(result(Error.ok))
+        except Exception as e:
+            traceback.print_exc()
+            traceback.print_stack()
+            returnValue(result(Error.error))
+
     @wamp.register(u'club.cottonway.admin.open_next_step')
     @inlineCallbacks
     def openNextStep(self, peerId, details):
@@ -677,7 +678,7 @@ class AppSession(ApplicationSession):
                                        {'$push': {'stepMoments': {'stepId': nextStep['_id'],
                                                                   'time': datetime.utcnow()}}})
 
-            yield self.notifyStepUpdated([user])
+            yield self.notifyStepUpdated(nextStep, [user])
             yield self.notifyRatingUpdated(user)
 
             returnValue(result(Error.ok))
@@ -687,7 +688,7 @@ class AppSession(ApplicationSession):
             returnValue(result(Error.error))
 
     @inlineCallbacks
-    def notifyStepUpdated(self, users):
+    def notifyStepUpdated(self, step, users):
         userSessionIds = yield self.getUserSessionIds(users)
 
         for u in users:
@@ -695,7 +696,7 @@ class AppSession(ApplicationSession):
                 stepMoments = u['stepMoments']
                 stepMoments = dict(zip(map(lambda m: m['stepId'], stepMoments),
                                        map(lambda m: m['time'], stepMoments)))
-                self.publish('club.cottonway.quest.on_step_updated', returnStep(s, stepMoments[s['_id']]),
+                self.publish('club.cottonway.quest.on_step_updated', returnStep(step, stepMoments[step['_id']]),
                              options=wamp.types.PublishOptions(eligible=userSessionIds[u['_id']]))
 
     @inlineCallbacks
