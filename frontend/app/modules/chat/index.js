@@ -35,9 +35,16 @@ function chatController ($scope, apiService, dataService, tokenService) {
                 ])
                     .then(function(list) {
 
-                        $scope.messages[room.id] = _.sortBy(list.messages, function (item) {
-                            return new Date(item.time).getTime();
-                        });
+                        $scope.messages[room.id] = _.chain(list.messages)
+                            .map(function (item) {
+                                return _.extend({
+                                    timeFormatted: moment(new Date(item.time)).format('HH:mm')
+                                }, item);
+                            })
+                            .sortBy(function (item) {
+                                return new Date(item.time).getTime();
+                            })
+                            .value();
                     });
             });
 

@@ -30,7 +30,7 @@
                 ui-scroll="scrollOptions">
                 <li class="m-chat__message"
                     ng-repeat="message in messages[currentRoom.id]">
-                    <span class="m-chat__message-time">[{{message.time | date:'HH:mm'}}]</span>
+                    <span class="m-chat__message-time">[{{message.timeFormatted}}]</span>
                     <span class="m-chat__message-name_signer"
                           ng-if="message.signer && currentRoom.isPrivate">
                         [<i class="fa fa-lock"></i> {{message.signer}}]
