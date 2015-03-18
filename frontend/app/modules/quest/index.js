@@ -33,7 +33,7 @@ function questController ($scope, apiService) {
                     .map(function (item) {
 
                         return _.extend({
-                            timeFormatted: moment(item.time).format('DD MMMM, HH:mm')
+                            timeFormatted: moment(new Date(item.time)).format('DD MMMM, HH:mm')
                         }, item);
                     })
                     .value();

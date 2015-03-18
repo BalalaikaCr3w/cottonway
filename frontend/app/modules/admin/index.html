@@ -79,7 +79,7 @@
         </tab>
 
         <tab heading="Участники">
-            <form class="form-inline">
+            <!--<form class="form-inline">
                 <div class="form-group">
                     <label>Игрок</label>
                     &nbsp;
@@ -100,7 +100,30 @@
                     Решеные задания:
                     <span ng-repeat="id in currentUser.solvedTaskIds">{{tasksById[id].title}}, </span>
                 </p>
-            </div>
+            </div>-->
+
+            <table class="table table-hover ui-table">
+                <thead>
+                <tr>
+                    <th>Логин</th>
+                    <th>Очки</th>
+                    <th style="width: 30%;">Пройденные шаги квеста</th>
+                    <th style="width: 50%;">Решеные задания</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="user in users">
+                    <td>{{user.name}}</td>
+                    <td>{{user.score}}</td>
+                    <td>
+                        <span ng-repeat="step in user.stepMoments">{{stepsById[step.stepId].seq}}, </span>
+                    </td>
+                    <td>
+                        <span ng-repeat="id in user.solvedTaskIds">{{tasksById[id].title}}, </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </tab>
     </tabset>
 </div>
