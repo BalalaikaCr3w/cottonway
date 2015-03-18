@@ -79,7 +79,28 @@
         </tab>
 
         <tab heading="Участники">
-            qweqwe
+            <form class="form-inline">
+                <div class="form-group">
+                    <label>Игрок</label>
+                    &nbsp;
+                    <select class="form-control"
+                            ng-options="user as user.name for user in users"
+                            ng-model="currentUser">
+                    </select>
+                </div>
+            </form>
+            <div ng-if="currentUser.id">
+                <p>Email: {{currentUser.email}}</p>
+                <p>Очки: {{currentUser.score}}</p>
+                <p>
+                    Пройденные шаги квеста:
+                    <span ng-repeat="step in currentUser.stepMoments">{{stepsById[step.stepId].seq}}, </span>
+                </p>
+                <p>
+                    Решеные задания:
+                    <span ng-repeat="id in currentUser.solvedTaskIds">{{tasksById[id].title}}, </span>
+                </p>
+            </div>
         </tab>
     </tabset>
 </div>

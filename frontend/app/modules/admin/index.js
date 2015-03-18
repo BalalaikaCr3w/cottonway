@@ -8,6 +8,8 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
 
     $scope.quest = {};
     $scope.task = {};
+    $scope.tasksById = {};
+    $scope.stepsById = {};
 
     $timeout(function () {
 
@@ -196,6 +198,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         apiService.call("club.cottonway.admin.tasks")
             .then(function(response){
                 $scope.tasks = response.tasks;
+                $scope.tasksById = {};
+                _.each($scope.tasks, function (item) {
+                    $scope.tasksById[item.id] = item;
+                });
             })
     }
 
@@ -213,6 +219,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         apiService.call('club.cottonway.admin.steps')
             .then(function (response) {
                 $scope.steps = _.sortBy(response.steps, 'seq');
+                $scope.stepsById = {};
+                _.each($scope.steps, function (item) {
+                    $scope.stepsById[item.id] = item;
+                });
             });
     }
 
@@ -220,7 +230,7 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
 
         apiService.call('club.cottonway.admin.users')
             .then(function (response) {
-                console.log(response);
+                $scope.users = response.peers;
             });
     }
 }
