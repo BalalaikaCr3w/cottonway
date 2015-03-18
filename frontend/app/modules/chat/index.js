@@ -37,9 +37,8 @@ function chatController ($scope, apiService, dataService, tokenService) {
 
                         $scope.messages[room.id] = _.chain(list.messages)
                             .map(function (item) {
-                                return _.extend({
-                                    timeFormatted: moment(new Date(item.time)).format('HH:mm')
-                                }, item);
+                                formatTime(item);
+                                return item;
                             })
                             .sortBy(function (item) {
                                 return new Date(item.time).getTime();
@@ -118,6 +117,7 @@ function chatController ($scope, apiService, dataService, tokenService) {
 
                     $scope.scrollOptions.static = false;
                     $scope.message = '';
+                    formatTime(response.message);
                     $scope.messages[$scope.currentRoom.id].push(response.message);
                 });
         }
@@ -164,6 +164,7 @@ function chatController ($scope, apiService, dataService, tokenService) {
 
         $scope.scrollOptions.static = false;
 
+        formatTime(args[0]);
         !_.isUndefined($scope.messages[roomId]) && $scope.messages[roomId].push(args[0]);
     }
 
@@ -176,5 +177,9 @@ function chatController ($scope, apiService, dataService, tokenService) {
         $scope.peers[peer.id] = peer;
 
         room && room.peerIds.push(peer.id);
+    }
+
+    function formatTime (message) {
+        message.timeFormatted = moment(new Date(message.time)).format('HH:mm');
     }
 }
