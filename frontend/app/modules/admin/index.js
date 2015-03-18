@@ -88,7 +88,7 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
             data.seq = parseInt(data.seq);
         }
 
-        apiService.call("club.cottonway.admin.update_step", [data], {}, {
+        !_.isEmpty(data) && apiService.call("club.cottonway.admin.update_step", [data], {}, {
             silent: true
         })
             .then(function () {
@@ -161,7 +161,7 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
             data.price = parseInt(data.price);
         }
 
-        apiService.call("club.cottonway.admin.update_task", [data], {}, {
+        !_.isEmpty(data) && apiService.call("club.cottonway.admin.update_task", [data], {}, {
             silent: true
         })
             .then(function () {
@@ -186,7 +186,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
 
     apiService.subscribe('club.cottonway.admin.on_step_updated', loadSteps);
 
-    function loadTasks () {
+    function loadTasks (task) {
+
+        $scope.currentTask = task;
+
         apiService.call("club.cottonway.admin.tasks")
             .then(function(response){
                 $scope.tasks = response.tasks;
@@ -200,7 +203,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
             });
     }
 
-    function loadSteps () {
+    function loadSteps (step) {
+
+        $scope.currentStep = step;
+
         apiService.call('club.cottonway.admin.steps')
             .then(function (response) {
                 $scope.steps = _.sortBy(response.steps, 'seq');
