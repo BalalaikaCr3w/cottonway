@@ -1,9 +1,14 @@
 {
     "list": [
         {
+            "name": "main",
+            "title": "Cotton Way club",
+            "url": "/",
+            "templateUrl": "app/modules/main/index.html"
+        }, {
             "name": "quest",
             "title": "Квест",
-            "url": "/",
+            "url": "/quest",
             "templateUrl": "app/modules/quest/index.html",
             "private": true
         }, {

@@ -1,5 +1,6 @@
 'use strict';
 
+require('./main');
 require('./quest');
 require('./exchange');
 require('./chat');
