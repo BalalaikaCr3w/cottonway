@@ -40,4 +40,33 @@
             padding: 20px 0;
         }
     }
+
+    &__step {
+
+        display: inline-block;
+
+        &-item {
+            display: inline-block;
+            width: 56px;
+            height: 56px;
+            padding: 10px;
+            font-size: 24px;
+            border: 1px solid @japanese-laurel;
+            border-radius: 50%;
+            text-align: center;
+            vertical-align: middle;
+
+            &:hover {
+                background-color: @japanese-laurel;
+                color: @white;
+                cursor: pointer;
+            }
+        }
+
+        &-separator {
+            display: inline-block;
+            padding: 0 15px 0 5px;
+            vertical-align: middle;
+        }
+    }
 }
