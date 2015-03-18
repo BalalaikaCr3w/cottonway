@@ -66,6 +66,10 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
             return memo;
         }, {});
 
+        if (!data.needInput) {
+            delete data.flag;
+        }
+
         if (!_.isEmpty(data)) {
             if ($scope.questStep.id) {
                 data.id = $scope.questStep.id;
@@ -188,6 +192,7 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         apiService.call('club.cottonway.admin.steps')
             .then(function (response) {
                 $scope.steps = _.sortBy(response.steps, 'seq');
+                console.log($scope.steps);
             });
     }
 }
