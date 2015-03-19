@@ -36,7 +36,9 @@ class Error(IntEnum):
     wrongParameters = 7
     roomAlreadyExists = 8
     wrongFlag = 9
-    alreadySolved = 10
+    alreadySolved = 10,
+    notEnoughMoney = 11,
+    wrongValue = 12
 
 errorMessages = {
     Error.error: u'Ошибка',
@@ -48,7 +50,9 @@ errorMessages = {
     Error.wrongParameters: u'Неправильные параметры',
     Error.roomAlreadyExists: u'Комната уже существует',
     Error.wrongFlag: u'Неверный флаг',
-    Error.alreadySolved: u'Уже решено'
+    Error.alreadySolved: u'Уже решено',
+    Error.notEnoughMoney: u'Не достаточно средств',
+    Error.wrongValue: u'Неправильное значение'
 }
 
 
@@ -468,12 +472,49 @@ class AppSession(ApplicationSession):
             if not ObjectId(stepId) in map(lambda m: m['stepId'], user['stepMoments']):
                 returnValue(result(Error.error))
 
-            returnValue(result())
+            step = yield self.db.steps.find_one({'_id': ObjectId(stepId)})
+            if '_id' not in step: returnValue(result(Error.error))
+
+            r = Error.ok
+            if step['seq'] == 2: r = yield self.withdraw(user, 25)
+            elif step['seq'] == 8: r = yield self.withdraw(user, 25)
+            elif step['seq'] == 13: r = yield self.withdraw(user, 25)
+            elif step['seq'] == 4: r = yield self.checkStepFlag(user, step, 'ZLVN4XW')
+            elif step['seq'] == 6: r = yield self.checkStepFlag(user, step, 'Abyssus abyssum invocat')
+            elif step['seq'] == 17: r = yield self.checkStepFlag(user, step, 'ANRUIJKBWWLK')
+            elif step['seq'] == 19: r = yield self.checkStepFlag(user, step, 'Calle Triana, 69, 35002 Las Palmas de Gran Canaria, Las Palmas, Spain')
+            elif step['seq'] == 22: r = yield self.checkStepFlag(user, step, '123-234-5678')
+
+            returnValue(result(r))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
             returnValue(result(Error.error))
 
+    @inlineCallbacks
+    def withdraw(self, user, amount):
+        while True:
+            if '_id' not in user: returnValue(Error.error)
+            if user['score'] < amount: returnValue(Error.notEnoughMoney)
+
+            version = user['version']
+            user['version'] += 1
+            user['score'] -= amount
+
+            res = yield self.db.users.update({'_id': user['_id'], 'version': version}, user)
+            if res['updatedExisting']: break
+            user = yield self.db.users.find_one({'_id': user['_id']})
+
+        r = yield self.doOpenNextStep(user['_id'])
+        returnValue(r)
+
+    @inlineCallbacks
+    def checkStepFlag(self, user, step, flag):
+        if step['flag'] != flag: returnValue(Error.wrongValue)
+
+        r = yield self.doOpenNextStep(user['_id'])
+        returnValue(r)
+    
     @inlineCallbacks
     def getUserSessionIds(self, users):
         sessions = yield self.db.sessions.find({'userId': {'$in': map(lambda u: u['_id'], users)}})
@@ -688,29 +729,38 @@ class AppSession(ApplicationSession):
             if '_id' not in user: returnValue(result(Error.error))
             if not user['isAdmin']: returnValue(result(Error.notAuthenticated))
 
-            peer = yield self.db.users.find_one({'_id': ObjectId(peerId)})
-            if '_id' not in peer: returnValue(result(Error.error))
-            if len(user['stepMoments']) == 0: returnValue(result(Error.error))
-            stepMoments = sorted(user['stepMoments'], key=itemgetter('time'), reverse=True)
+            r = yield self.doOpenNextStep(ObjectId(peerId))
 
-            lastStep = yield self.db.steps.find_one({'_id': stepMoments[0]['stepId']})
-            if '_id' not in lastStep: returnValue(result(Error.error))
-            nextStep = yield self.db.steps.find_one({'seq': lastStep['seq'] + 1})
-
-            yield self.db.users.update({'_id': ObjectId(peerId)},
-                                       {'$push': {'stepMoments': {'stepId': nextStep['_id'],
-                                                                  'time': datetime.utcnow()}}})
-
-            peer = yield self.db.users.find_one({'_id': ObjectId(peerId)})
-
-            yield self.notifyStepUpdated(nextStep, [peer])
-            yield self.notifyRatingUpdated(peer)
-
-            returnValue(result(Error.ok))
+            returnValue(result(r))
         except Exception as e:
             traceback.print_exc()
             traceback.print_stack()
             returnValue(result(Error.error))
+
+    @inlineCallbacks
+    def doOpenNextStep(self, userId):
+        while True:
+            user = yield self.db.users.find_one({'_id': userId})
+            if '_id' not in user: returnValue(Error.error)
+            if len(user['stepMoments']) == 0: returnValue(Error.error)
+
+            stepMoments = sorted(user['stepMoments'], key=itemgetter('time'), reverse=True)
+
+            lastStep = yield self.db.steps.find_one({'_id': stepMoments[0]['stepId']})
+            if '_id' not in lastStep: returnValue(Error.error)
+            nextStep = yield self.db.steps.find_one({'seq': lastStep['seq'] + 1})
+
+            res = yield self.db.users.update({'_id': userId},
+                                             {'$push': {'stepMoments': {'stepId': nextStep['_id'],
+                                                                        'time': datetime.utcnow()}}})
+            if res['updatedExisting']: break
+
+        peer = yield self.db.users.find_one({'_id': userId})
+
+        yield self.notifyStepUpdated(nextStep, [peer])
+        yield self.notifyRatingUpdated(peer)
+
+        returnValue(Error.ok)
 
     @inlineCallbacks
     def notifyStepUpdated(self, step, users):
