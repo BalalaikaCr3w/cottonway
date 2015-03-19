@@ -1,6 +1,7 @@
 var controllers = require('../../core/controllers'),
     _ = require('lodash'),
-    diff = require('deep-diff');
+    diff = require('deep-diff'),
+    moment = require('moment');
 
 controllers.controller('adminController', ['$scope', '$rootScope', '$timeout', 'apiService', 'modalService', adminController]);
 
@@ -190,6 +191,35 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
     apiService.subscribe('club.cottonway.admin.on_task_updated', loadTasks);
 
     apiService.subscribe('club.cottonway.admin.on_step_updated', loadSteps);
+
+    $scope.$watch('quest.peer', function (peer) {
+
+        var user,
+            step;
+
+        $scope.userLastStep = false;
+
+        if (peer && peer.id) {
+
+            user = _.find($scope.users, {id: peer.id});
+
+            if (user) {
+
+                step = _.chain(user.stepMoments)
+                    .map(function (item) {
+                        return _.extend({
+                            formatted: moment(new Date(item.time)).format('HH:mm'),
+                            timestamp: new Date(item.time).getTime()
+                        }, item);
+                    })
+                    .sortBy('timestamp')
+                    .last()
+                    .value();
+
+                $scope.userLastStep = _.extend(step, _.find($scope.steps, {id: step.stepId}));
+            }
+        }
+    });
 
     function loadTasks (task) {
 
