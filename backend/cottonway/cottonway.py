@@ -38,7 +38,8 @@ class Error(IntEnum):
     wrongFlag = 9
     alreadySolved = 10,
     notEnoughMoney = 11,
-    wrongValue = 12
+    wrongValue = 12,
+    wrongSignature = 13
 
 errorMessages = {
     Error.error: u'Ошибка',
@@ -52,7 +53,8 @@ errorMessages = {
     Error.wrongFlag: u'Неверный флаг',
     Error.alreadySolved: u'Уже решено',
     Error.notEnoughMoney: u'Не достаточно средств',
-    Error.wrongValue: u'Неправильное значение'
+    Error.wrongValue: u'Неправильное значение',
+    Error.wrongSignature: u'Подпись не сошлась'
 }
 
 
@@ -80,9 +82,11 @@ def result(*args, **kwargs):
     return kwargs
 
 def returnMessage(message, isNew):
-    return {'id': str(message['_id']), 'roomId': str(message['roomId']),
-            'sender': str(message['sender']), 'text': message['text'],
-            'time': message['time'].isoformat(), 'new': isNew}
+    r = {'id': str(message['_id']), 'roomId': str(message['roomId']),
+       'sender': str(message['sender']), 'text': message['text'],
+       'time': message['time'].isoformat(), 'new': isNew}
+    if 'signer' in message: r['signer'] = message['signer']
+    return r
 
 def returnRoom(room, userId):
     r = {'id': str(room['_id']),
@@ -357,10 +361,20 @@ class AppSession(ApplicationSession):
 
             session = yield self.db.sessions.find_one({'wampSessionId': details.caller})
             if '_id' not in session: returnValue(result(Error.notAuthenticated))
-                                                      
+
+            signer = ''
+            if 'signature' in kwargs:
+                import base64, os
+                from twisted.internet import utils
+                script = os.path.dirname(os.path.realpath(__file__)) + '/pkcs7.py'
+                signature = base64.b64encode(kwargs['signature'])
+                res = yield utils.getProcessValue(script, [signature])
+                if res != 0: returnValue(result(Error.wrongSignature))
+                signer = yield utils.getProcessOutput(script, [signature])
+      
             room = yield self.db.rooms.find_one({'_id': ObjectId(roomId)})
             messageId = yield self.db.messages.insert({'roomId': ObjectId(roomId), 'sender': session['userId'],
-                                                       'text': text, 'time': datetime.utcnow()})
+                                                       'text': text, 'time': datetime.utcnow(), 'signer': signer})
             peerIds = filter(lambda i: i != session['userId'], room['userIds'])
             newMessages = map(lambda i: {'userId': i, 'messageId': messageId}, peerIds)
 
