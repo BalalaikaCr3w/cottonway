@@ -5,7 +5,7 @@ controllers.controller('settingsController', ['$scope', 'pluginService', 'tokenS
 function settingsController ($scope, pluginService, tokenService, dataService) {
 
     $scope.needSign = dataService('needSign').var;
-    $scope.certId = 
+ 
     $scope.certId = 
     {
         id : dataService('certId').var
