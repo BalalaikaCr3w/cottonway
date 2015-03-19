@@ -109,6 +109,8 @@ function chatController ($scope, apiService, dataService, tokenService) {
                 options.signature = signature;
             }
 
+            $scope.blocked = true;
+
             apiService.call('club.cottonway.chat.send_message', [
                 $scope.currentRoom.id,
                 text
@@ -119,6 +121,9 @@ function chatController ($scope, apiService, dataService, tokenService) {
                     $scope.message = '';
                     formatTime(response.message);
                     $scope.messages[$scope.currentRoom.id].push(response.message);
+                })
+                .finally(function () {
+                    $scope.blocked = false;
                 });
         }
     };

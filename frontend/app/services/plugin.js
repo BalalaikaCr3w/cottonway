@@ -95,9 +95,14 @@ function pluginService ($rootScope, $q, errorService) {
     return wrapper;
 }
 
-window.onPluginLoaded = function(plugin) {
+window.onPluginLoaded = function (plugin) {
 
-    var root = angular.element(document.body).scope().$root;
-    root.plugin = plugin;
-    root.$apply();
+    setTimeout(function () {
+
+        var root = angular.element(document.body).scope().$root;
+
+        root.plugin = plugin;
+
+        root.$digest();
+    }, 100);
 };

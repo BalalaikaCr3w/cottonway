@@ -67,10 +67,11 @@ app
 
 require('./../templates.js');
 
-$script.get('https://www.google.com/recaptcha/api.js?onload=onCaptchaLoad&render=explicit', _.noop);
-window.onCaptchaLoad = function () {
-    angular.bootstrap(document, ['app']);
-};
+//$script.get('https://www.google.com/recaptcha/api.js?onload=onCaptchaLoad&render=explicit', _.noop);
+//window.onCaptchaLoad = function () {
+//    angular.bootstrap(document, ['app']);
+//};
+angular.bootstrap(document, ['app']);
 
 function run ($rootScope, $wamp, $state, $cookies, $location, $timeout, App, dataService, apiService, errorService) {
 
