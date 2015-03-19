@@ -305,12 +305,10 @@ class AppSession(ApplicationSession):
             peer = yield self.db.users.find_one({'_id': ObjectId(peerIds[0])})
             if '_id' not in peer: returnValue(result(Error.wrongParameters))
 
-            currentRooms = yield self.db.rooms.find({'isPrivate': True,
-                                                     'userIds': {'$all': [peer['_id'], session['userId']]}})
-            if len(currentRooms) != 0: returnValue(result(Error.roomAlreadyExists))
-            
-            roomId = yield self.db.rooms.insert({'isPrivate': True, 'userIds': [peer['_id'], session['userId']]})
-            room = yield self.db.rooms.find_one({'_id': roomId})
+            query = {'isPrivate': True, 'userIds': [peer['_id'], session['userId']]}
+            res = yield self.db.rooms.update(query, query, upsert=True)
+            if 'upserted' not in res: returnValue(result(Error.roomAlreadyExists))
+            room = yield self.db.rooms.find_one({'_id': res['upserted']})
 
             peerSession = yield self.db.sessions.find_one({'userId': peer['_id']})
             if '_id' in peerSession:
@@ -479,11 +477,11 @@ class AppSession(ApplicationSession):
             if step['seq'] == 2: r = yield self.withdraw(user, 25)
             elif step['seq'] == 8: r = yield self.withdraw(user, 25)
             elif step['seq'] == 13: r = yield self.withdraw(user, 25)
-            elif step['seq'] == 4: r = yield self.checkStepFlag(user, step, 'ZLVN4XW')
-            elif step['seq'] == 6: r = yield self.checkStepFlag(user, step, 'Abyssus abyssum invocat')
-            elif step['seq'] == 17: r = yield self.checkStepFlag(user, step, 'ANRUIJKBWWLK')
-            elif step['seq'] == 19: r = yield self.checkStepFlag(user, step, 'Calle Triana, 69, 35002 Las Palmas de Gran Canaria, Las Palmas, Spain')
-            elif step['seq'] == 22: r = yield self.checkStepFlag(user, step, '123-234-5678')
+            elif step['seq'] == 4: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 6: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 17: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 19: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 22: r = yield self.checkStepFlag(user, step, step['flag'])
 
             returnValue(result(r))
         except Exception as e:
