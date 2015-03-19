@@ -29,7 +29,7 @@
         <div class="form-group">
             <select class="form-control"
                     required
-                    ng-model="certId"
+                    ng-model="certId.id"
                     ng-disabled="!needSign"
                     ng-options="cert.certId as cert.commonName for cert in token.certs">
             </select>
