@@ -305,12 +305,10 @@ class AppSession(ApplicationSession):
             peer = yield self.db.users.find_one({'_id': ObjectId(peerIds[0])})
             if '_id' not in peer: returnValue(result(Error.wrongParameters))
 
-            currentRooms = yield self.db.rooms.find({'isPrivate': True,
-                                                     'userIds': {'$all': [peer['_id'], session['userId']]}})
-            if len(currentRooms) != 0: returnValue(result(Error.roomAlreadyExists))
-            
-            roomId = yield self.db.rooms.insert({'isPrivate': True, 'userIds': [peer['_id'], session['userId']]})
-            room = yield self.db.rooms.find_one({'_id': roomId})
+            query = {'isPrivate': True, 'userIds': [peer['_id'], session['userId']]}
+            res = yield self.db.rooms.update(query, query, upsert=True)
+            if 'upserted' not in res: returnValue(result(Error.roomAlreadyExists))
+            room = yield self.db.rooms.find_one({'_id': res['upserted']})
 
             peerSession = yield self.db.sessions.find_one({'userId': peer['_id']})
             if '_id' in peerSession:
