@@ -221,6 +221,11 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         }
     });
 
+    $scope.startsWith = function(id, viewValue) {
+        var user = _.find($scope.users, {id: id});
+        return user && user.name.substr(0, viewValue.length).toLowerCase() === viewValue.toLowerCase();
+    };
+
     function loadTasks (task) {
 
         $scope.currentTask = task;
@@ -238,7 +243,7 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
     function loadPeers () {
         apiService.call('club.cottonway.common.peers')
             .then(function (response) {
-                $scope.peers = response.peers;
+                $scope.peers = _.sortBy(response.peers, 'name');
             });
     }
 

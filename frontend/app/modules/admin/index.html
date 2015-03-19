@@ -13,7 +13,7 @@
                            placeholder="ник игрока"
                            required
                            ng-model="quest.peer"
-                           typeahead="peer as peer.name for peer in peers | filter:$viewValue | limitTo:8"
+                           typeahead="peer as peer.name for peer in peers | filter:$viewValue:startsWith | limitTo:8"
                            typeahead-input-formatter="formatPeer($model)">
                 </div>
                 &nbsp;
