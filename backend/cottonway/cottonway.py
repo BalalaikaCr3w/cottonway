@@ -477,11 +477,11 @@ class AppSession(ApplicationSession):
             if step['seq'] == 2: r = yield self.withdraw(user, 25)
             elif step['seq'] == 8: r = yield self.withdraw(user, 25)
             elif step['seq'] == 13: r = yield self.withdraw(user, 25)
-            elif step['seq'] == 4: r = yield self.checkStepFlag(user, step, 'ZLVN4XW')
-            elif step['seq'] == 6: r = yield self.checkStepFlag(user, step, 'Abyssus abyssum invocat')
-            elif step['seq'] == 17: r = yield self.checkStepFlag(user, step, 'ANRUIJKBWWLK')
-            elif step['seq'] == 19: r = yield self.checkStepFlag(user, step, 'Calle Triana, 69, 35002 Las Palmas de Gran Canaria, Las Palmas, Spain')
-            elif step['seq'] == 22: r = yield self.checkStepFlag(user, step, '123-234-5678')
+            elif step['seq'] == 4: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 6: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 17: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 19: r = yield self.checkStepFlag(user, step, step['flag'])
+            elif step['seq'] == 22: r = yield self.checkStepFlag(user, step, step['flag'])
 
             returnValue(result(r))
         except Exception as e:
