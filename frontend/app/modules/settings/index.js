@@ -5,7 +5,11 @@ controllers.controller('settingsController', ['$scope', 'pluginService', 'tokenS
 function settingsController ($scope, pluginService, tokenService, dataService) {
 
     $scope.needSign = dataService('needSign').var;
-    $scope.certId = dataService('certId').var;
+    $scope.certId = 
+    $scope.certId = 
+    {
+        id : dataService('certId').var
+    }
     $scope.pin = {
         pin:''
     }
@@ -14,6 +18,10 @@ function settingsController ($scope, pluginService, tokenService, dataService) {
 
         return pluginService.isLoaded;
     };
+
+    $scope.$watch("certId.id",function(newVal){
+        dataService('certId').var = newVal;
+    })
 
     $scope.login = function () {
 
