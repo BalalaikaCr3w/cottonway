@@ -83,40 +83,33 @@
         </tab>
 
         <tab heading="Участники">
-            <!--<form class="form-inline">
-                <div class="form-group">
-                    <label>Игрок</label>
-                    &nbsp;
-                    <select class="form-control"
-                            ng-options="user as user.name for user in users"
-                            ng-model="currentUser">
-                    </select>
-                </div>
-            </form>
-            <div ng-if="currentUser.id">
-                <p>Email: {{currentUser.email}}</p>
-                <p>Очки: {{currentUser.score}}</p>
-                <p>
-                    Пройденные шаги квеста:
-                    <span ng-repeat="step in currentUser.stepMoments">{{stepsById[step.stepId].seq}}, </span>
-                </p>
-                <p>
-                    Решеные задания:
-                    <span ng-repeat="id in currentUser.solvedTaskIds">{{tasksById[id].title}}, </span>
-                </p>
-            </div>-->
-
             <table class="table table-hover ui-table">
                 <thead>
                 <tr>
-                    <th>Логин</th>
-                    <th>Очки</th>
-                    <th style="width: 30%;">Пройденные шаги квеста</th>
-                    <th style="width: 50%;">Решеные задания</th>
+                    <th class="ui-table__th ui-table__th_sort m-admin__table-name" ng-click="sortTable(filters.name)">
+                        Логин
+                        <i class="fa fa-caret-down" ng-if="filters.name.direction < 0 && currentFilter.value == filters.name.value"></i>
+                        <i class="fa fa-caret-up" ng-if="filters.name.direction > 0 && currentFilter.value == filters.name.value"></i>
+                    </th>
+                    <th class="ui-table__th ui-table__th_sort m-admin__table-points" ng-click="sortTable(filters.points)">
+                        Очки
+                        <i class="fa fa-caret-down" ng-if="filters.points.direction < 0 && currentFilter.value == filters.points.value"></i>
+                        <i class="fa fa-caret-up" ng-if="filters.points.direction > 0 && currentFilter.value == filters.points.value"></i>
+                    </th>
+                    <th class="ui-table__th ui-table__th_sort m-admin__table-steps" ng-click="sortTable(filters.steps)">
+                        Пройденные шаги квеста
+                        <i class="fa fa-caret-down" ng-if="filters.steps.direction < 0 && currentFilter.value == filters.steps.value"></i>
+                        <i class="fa fa-caret-up" ng-if="filters.steps.direction > 0 && currentFilter.value == filters.steps.value"></i>
+                    </th>
+                    <th class="ui-table__th ui-table__th_sort m-admin__table-tasks" ng-click="sortTable(filters.tasks)">
+                        Решеные задания
+                        <i class="fa fa-caret-down" ng-if="filters.tasks.direction < 0 && currentFilter.value == filters.tasks.value"></i>
+                        <i class="fa fa-caret-up" ng-if="filters.tasks.direction > 0 && currentFilter.value == filters.tasks.value"></i>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="user in users">
+                <tr ng-repeat="user in usersSorted">
                     <td>{{user.name}}</td>
                     <td>{{user.score}}</td>
                     <td>

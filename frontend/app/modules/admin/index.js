@@ -226,6 +226,50 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
         return user && user.name.substr(0, viewValue.length).toLowerCase() === viewValue.toLowerCase();
     };
 
+    $scope.filters = {
+        name: {
+            value: 'name',
+            direction: 1
+        },
+        points: {
+            value: 'score',
+            direction: 1
+        },
+        steps: {
+            value: 'steps',
+            direction: 1,
+            rule: function (user) {
+                return user.stepMoments.length
+            }
+        },
+        tasks: {
+            value: 'tasks',
+            direction: 1,
+            rule: function (user) {
+                return user.solvedTaskIds.length
+            }
+        }
+    };
+
+    $scope.sortTable = function (filter) {
+
+        if ($scope.currentFilter && filter.value !== $scope.currentFilter.value) {
+            _.each($scope.filters, function (item) {
+                item.direction = 1;
+            });
+        }
+
+        $scope.currentFilter = filter;
+
+        $scope.usersSorted = _.sortBy($scope.users, function (user) {
+            return filter.rule && filter.rule(user) || user[filter.value];
+        });
+
+        filter.direction < 0 && $scope.usersSorted.reverse();
+
+        filter.direction *= -1;
+    };
+
     function loadTasks (task) {
 
         $scope.currentTask = task;
@@ -265,7 +309,8 @@ function adminController ($scope, $rootScope, $timeout, apiService, modalService
 
         apiService.call('club.cottonway.admin.users')
             .then(function (response) {
-                $scope.users = response.peers;
+                $scope.users = _.sortBy(response.peers, 'name');
+                $scope.sortTable($scope.filters.name);
             });
     }
 }
