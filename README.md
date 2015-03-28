@@ -1,5 +1,5 @@
 #Intro
-Cotton way club sources
+Cotton way club sources. This is a web application for holding quest and jeopardy-style games. It was used during RusCrypto 2015 conference. We intend to make universal CTF platform based on these sources.
 
 #Frontend
 
@@ -29,4 +29,17 @@ Then setup your webserver on `public` folder.
 ```
 $ cd frontend
 $ node server/index.js
+```
+
+#Backend
+
+You must have MongoDB installed and run.
+
+```
+$ cd backend
+$ sudo pip2 install -r requirements.txt
+$ mkdir .crossbar
+$ cp config.json .crossbar/
+$ ln -s ../frontend/public/ web
+$ crossbar start
 ```
